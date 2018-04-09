@@ -1,5 +1,7 @@
 # Tesseract
 
+<p align="center"><img src="./image/tesseract.png"></p>
+
 Tesseract is a library to run SmartContract on Docker Container.
 
 ## Lincese
