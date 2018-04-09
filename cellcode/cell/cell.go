@@ -1,6 +1,6 @@
-package shim
+package cell
 
-type Shim struct {
+type Cell struct {
 	DBPath string
 	Tx     string // Need import Tx data
 }
