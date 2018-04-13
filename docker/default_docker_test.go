@@ -13,14 +13,16 @@ import (
 )
 
 func TestCreateContainerWithCellCode(t *testing.T) {
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", "/Users/hackurity/go/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
+	GOPATH := os.Getenv("GOPATH")
+	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
 	assert.NoError(t, err)
 
 	log.Print(res)
 }
 
 func TestStartContainer(t *testing.T) {
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", "/Users/hackurity/go/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
+	GOPATH := os.Getenv("GOPATH")
+	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
 
 	err = StartContainer(res)
 	assert.NoError(t, err)
