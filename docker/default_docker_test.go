@@ -1,15 +1,20 @@
 package docker
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
+	"context"
 	"log"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 	//"docker.io/go-docker/api/types/container"
-	"os"
 	"bytes"
-	"os/exec"
 	"io"
+	"os"
+	"os/exec"
 	"time"
+
+	"docker.io/go-docker"
+	"docker.io/go-docker/api/types"
 )
 
 func TestCreateContainerWithCellCode(t *testing.T) {
@@ -31,7 +36,6 @@ func TestStartContainer(t *testing.T) {
 
 	_, err = os.Stat("../cellcode/query")
 	assert.NoError(t, err)
-
 
 	defer func() {
 		// Remove Test Docker Container
@@ -58,5 +62,59 @@ func TestStartContainer(t *testing.T) {
 
 func TestPullImage(t *testing.T) {
 	err := PullImage(imageName + ":" + imageTag)
-	assert.NoError(t,err)
+	assert.NoError(t, err)
+}
+
+func TestHasImageWhenImageExist(t *testing.T) {
+
+	//given
+	image := imageName + ":" + imageTag
+	err := PullImage(image)
+	assert.NoError(t, err)
+
+	//when
+	flag, err := HasImage(image)
+	assert.NoError(t, err)
+
+	//then
+	assert.True(t, flag)
+
+	defer func() {
+		ctx := context.Background()
+		cli, err := docker.NewEnvClient()
+		assert.NoError(t, err)
+		_, err = cli.ImageRemove(ctx, image, types.ImageRemoveOptions{})
+		assert.NoError(t, err)
+	}()
+}
+
+func TestHasImageWhenImageDoesNotExist(t *testing.T) {
+
+	//given
+	image := imageName + ":" + imageTag
+	removeImage(image)
+
+	//when
+	flag, err := HasImage(image)
+	assert.NoError(t, err)
+
+	//then
+	assert.False(t, flag)
+}
+
+func removeImage(image string) error {
+	ctx := context.Background()
+	cli, err := docker.NewEnvClient()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = cli.ImageRemove(ctx, image, types.ImageRemoveOptions{})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

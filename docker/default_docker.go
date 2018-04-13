@@ -2,29 +2,45 @@ package docker
 
 import (
 	"context"
+
+	"io"
+	"os"
+
 	"docker.io/go-docker"
-	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types"
-	"bytes"
-	"fmt"
+	"docker.io/go-docker/api/types/container"
 )
 
 const (
 	imageName = "golang"
-	imageTag = "1.9"
+	imageTag  = "1.9"
 )
 
 type ICodeInfo struct {
-	Name string
+	Name      string
 	Directory string
 }
 
 func CreateContainerWithCellCode(iCodeInfo ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
+
 	res := container.ContainerCreateCreatedBody{}
+	image := imageName + ":" + imageTag
+
+	exist, err := HasImage(image)
+
+	if err != nil {
+		return res, err
+	}
+
+	if !exist {
+		if err := PullImage(image); err != nil {
+			return res, err
+		}
+	}
+
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 	if err != nil {
-		// An error occurred while creating new Docker Client!
 		return res, err
 	}
 
@@ -41,8 +57,8 @@ func CreateContainerWithCellCode(iCodeInfo ICodeInfo, cellCodeDir string) (conta
 	}, &container.HostConfig{
 		Binds: []string{cellCodeDir + ":/cellcode", iCodeInfo.Directory + ":/icode"},
 	}, nil, "")
+
 	if err != nil {
-		// An error occurred while creating docker container!
 		return res, err
 	}
 
@@ -62,20 +78,42 @@ func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
 	return nil
 }
 
-func PullImage(imageName string) error{
+func PullImage(imageName string) error {
 
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
-	_, err = cli.ImagePull(ctx,imageName,types.ImagePullOptions{})
+	resp, err := cli.ImagePull(ctx, imageName, types.ImagePullOptions{})
+	defer resp.Close()
 
-	if err != nil{
+	io.Copy(os.Stdout, resp)
+
+	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func HasImage(name string) (bool, error) {
+	ctx := context.Background()
+	cli, err := docker.NewEnvClient()
+
+	imageList, err := cli.ImageList(ctx, types.ImageListOptions{})
+
+	if err != nil {
+		return false, err
+	}
+
+	for _, image := range imageList {
+		if name == image.RepoTags[0] {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
