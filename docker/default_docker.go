@@ -5,6 +5,8 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types"
+	"bytes"
+	"fmt"
 )
 
 const (
@@ -54,6 +56,24 @@ func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
 	err = cli.ContainerStart(ctx, containerBody.ID, types.ContainerStartOptions{})
 	if err != nil {
 		// An error occurred while starting the container!
+		return err
+	}
+
+	return nil
+}
+
+func PullImage(imageName string) error{
+
+	ctx := context.Background()
+	cli, err := docker.NewEnvClient()
+
+	if err != nil{
+		return err
+	}
+
+	_, err = cli.ImagePull(ctx,imageName,types.ImagePullOptions{})
+
+	if err != nil{
 		return err
 	}
 

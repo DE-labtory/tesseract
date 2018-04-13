@@ -14,7 +14,7 @@ import (
 
 func TestCreateContainerWithCellCode(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
 	assert.NoError(t, err)
 
 	log.Print(res)
@@ -22,7 +22,7 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 
 func TestStartContainer(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, "/Users/hackurity/go/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
 
 	err = StartContainer(res)
 	assert.NoError(t, err)
@@ -54,4 +54,9 @@ func TestStartContainer(t *testing.T) {
 		// Remove Success File(Query) that created by icode
 		os.Remove("../cellcode/query")
 	}()
+}
+
+func TestPullImage(t *testing.T) {
+	err := PullImage(imageName + ":" + imageTag)
+	assert.NoError(t,err)
 }

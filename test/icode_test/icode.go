@@ -8,7 +8,6 @@ type ICode struct {
 
 }
 
-
 func (ic *ICode) Query() {
 	cmd := exec.Command("touch", "/cellcode/query")
 	cmd.Run()
