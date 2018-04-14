@@ -3,13 +3,18 @@ package tesseract
 type Tesseract struct {
 }
 
-func (t * Tesseract) NewTesseract() {
-	// Docker IMAGE pull
+type ICodeInfo struct {
+	Name      string
+	Directory string
+}
+
+func (t *Tesseract) NewTesseract() {
 }
 
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
 func (t *Tesseract) SetupContainer() {
 	// args : SmartContract info
+	// Docker IMAGE pull
 	// Create Docker
 	// Copy ShimCode
 	// Copy SmartContract
