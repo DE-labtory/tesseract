@@ -1,25 +1,25 @@
 package docker
 
 import (
-	"context"
-	"log"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	//"docker.io/go-docker/api/types/container"
 	"bytes"
+	"context"
 	"io"
+	"log"
 	"os"
 	"os/exec"
+	"testing"
 	"time"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
+
+	"github.com/it-chain/tesseract"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateContainerWithCellCode(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
 	assert.NoError(t, err)
 
 	log.Print(res)
@@ -27,7 +27,7 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 
 func TestStartContainer(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
 
 	err = StartContainer(res)
 	assert.NoError(t, err)

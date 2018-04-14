@@ -32,7 +32,7 @@ func main() {
 	// ToDo : Socket Connection
 	// ToDo : Setting Cell
 
-	if(true) {
+	if true {
 		iCode.Query()
 	} else {
 		iCode.Invoke()

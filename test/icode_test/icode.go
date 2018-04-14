@@ -5,7 +5,6 @@ import (
 )
 
 type ICode struct {
-
 }
 
 func (ic *ICode) Query() {

@@ -2,13 +2,14 @@ package docker
 
 import (
 	"context"
-
 	"io"
 	"os"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
+
+	"github.com/it-chain/tesseract"
 )
 
 const (
@@ -16,12 +17,7 @@ const (
 	imageTag  = "1.9"
 )
 
-type ICodeInfo struct {
-	Name      string
-	Directory string
-}
-
-func CreateContainerWithCellCode(iCodeInfo ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainerWithCellCode(iCodeInfo tesseract.ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
 
 	res := container.ContainerCreateCreatedBody{}
 	image := imageName + ":" + imageTag
