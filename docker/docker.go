@@ -1,6 +1,6 @@
 package docker
 
 type Docker interface {
-	CreateContainer()
+	CreateContainerWithCellCode()
 	StartContainer()
 }
