@@ -4,9 +4,11 @@
 
 Tesseract is a library to run SmartContract on Docker Container.
 
-## Requirements
+## Architecture
 
-- Docker >= 17.12.0
+Overview of the architecture of `Tesseract` can be found in the following link. <br>
+
+[ARCHITECTURE](ARCHITECTURE-KR.md)
 
 ## Lincese
 
