@@ -1,0 +1,19 @@
+syntax = "proto3";
+package msg;
+
+// The greeting service definition.
+service socketMessage {
+    // Sends a greeting
+    rpc connect (ConnectionRequest) returns (ConnectionReply) {}
+}
+
+// The request message containing the user's name.
+message ConnectionRequest {
+    string test = 1;
+}
+
+
+// The response message containing the greetings
+message ConnectionReply {
+    string test = 1;
+}
