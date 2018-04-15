@@ -9,6 +9,8 @@ import (
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 
+	"path/filepath"
+
 	"github.com/it-chain/tesseract"
 )
 
@@ -17,7 +19,7 @@ const (
 	DefaultImageTag  = "1.9"
 )
 
-func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, tesseractPath string, shPath string) (container.ContainerCreateCreatedBody, error) {
 
 	res := container.ContainerCreateCreatedBody{}
 	image := dockerImage.Name + ":" + dockerImage.Tag
@@ -44,13 +46,14 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 		Image: dockerImage.Name + ":" + dockerImage.Tag,
 		Cmd: []string{
 			"sh",
-			"/cellcode/setup.sh",
+			"/sh/" + filepath.Base(shPath),
 		},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
 	}, &container.HostConfig{
-		Binds: []string{cellCodeDir + ":/cellcode", iCodeInfo.Directory + ":/icode", ""},
+		CapAdd: []string{"SYS_ADMIN"},
+		Binds:  []string{tesseractPath + ":/tesseract", iCodeInfo.Directory + ":/icode", filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
 	if err != nil {
