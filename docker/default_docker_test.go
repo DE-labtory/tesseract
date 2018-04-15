@@ -19,7 +19,11 @@ import (
 
 func TestCreateContainerWithCellCode(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(
+		DockerImage{DefaultImageName, DefaultImageTag},
+		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode",
+	)
 	assert.NoError(t, err)
 
 	log.Print(res)
@@ -27,7 +31,11 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 
 func TestStartContainer(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	res, err := CreateContainerWithCellCode(tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"}, GOPATH+"/src/github.com/it-chain/tesseract/cellcode")
+	res, err := CreateContainerWithCellCode(
+		DockerImage{DefaultImageName, DefaultImageTag},
+		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode",
+	)
 
 	err = StartContainer(res)
 	assert.NoError(t, err)
@@ -61,14 +69,14 @@ func TestStartContainer(t *testing.T) {
 }
 
 func TestPullImage(t *testing.T) {
-	err := PullImage(imageName + ":" + imageTag)
+	err := PullImage(DefaultImageName + ":" + DefaultImageTag)
 	assert.NoError(t, err)
 }
 
 func TestHasImageWhenImageExist(t *testing.T) {
 
 	//given
-	image := imageName + ":" + imageTag
+	image := DefaultImageName + ":" + DefaultImageTag
 	err := PullImage(image)
 	assert.NoError(t, err)
 
@@ -91,7 +99,7 @@ func TestHasImageWhenImageExist(t *testing.T) {
 func TestHasImageWhenImageDoesNotExist(t *testing.T) {
 
 	//given
-	image := imageName + ":" + imageTag
+	image := DefaultImageName + ":" + DefaultImageTag
 	removeImage(image)
 
 	//when

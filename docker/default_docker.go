@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	imageName = "golang"
-	imageTag  = "1.9"
+	DefaultImageName = "golang"
+	DefaultImageTag  = "1.9"
 )
 
-func CreateContainerWithCellCode(iCodeInfo tesseract.ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
 
 	res := container.ContainerCreateCreatedBody{}
-	image := imageName + ":" + imageTag
+	image := dockerImage.Name + ":" + dockerImage.Tag
 
 	exist, err := HasImage(image)
 
@@ -41,17 +41,16 @@ func CreateContainerWithCellCode(iCodeInfo tesseract.ICodeInfo, cellCodeDir stri
 	}
 
 	res, err = cli.ContainerCreate(ctx, &container.Config{
-		Image: imageName + ":" + imageTag,
+		Image: dockerImage.Name + ":" + dockerImage.Tag,
 		Cmd: []string{
 			"sh",
 			"/cellcode/setup.sh",
-			// Need to send smartcontract path
 		},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
 	}, &container.HostConfig{
-		Binds: []string{cellCodeDir + ":/cellcode", iCodeInfo.Directory + ":/icode"},
+		Binds: []string{cellCodeDir + ":/cellcode", iCodeInfo.Directory + ":/icode", ""},
 	}, nil, "")
 
 	if err != nil {
