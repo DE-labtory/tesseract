@@ -1,6 +1,6 @@
-package socket
+package grpc
 
-type Socket interface {
+type GrpcServer interface {
 	Start()
 	Connect()
 	SendMsg()

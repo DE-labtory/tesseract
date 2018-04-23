@@ -1,19 +1,18 @@
 syntax = "proto3";
-package msg;
+package message;
 
 // The greeting service definition.
-service socketMessage {
+service StreamService {
     // Sends a greeting
-    rpc connect (ConnectionRequest) returns (ConnectionReply) {}
+    rpc Stream (stream Request) returns (stream Response) {}
 }
 
 // The request message containing the user's name.
-message ConnectionRequest {
+message Request {
     string test = 1;
 }
 
-
 // The response message containing the greetings
-message ConnectionReply {
+message Response {
     string test = 1;
 }
