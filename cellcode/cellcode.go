@@ -2,15 +2,16 @@ package main
 
 import (
 	"os"
+	"os/exec"
 	"plugin"
+
+	"github.com/it-chain/tesseract/cellcode/cell"
+	"github.com/it-chain/tesseract/stream"
 )
 
 type ICode interface {
-	Query()
-	Invoke()
-}
-
-type socketClient struct {
+	Query(cell.Cell)
+	Invoke(cell.Cell)
 }
 
 func main() {
@@ -32,12 +33,26 @@ func main() {
 
 	iCode := iCodePlugin.(ICode)
 
-	// ToDo : Socket Connection
-	// ToDo : Setting Cell
+	cmd := exec.Command("touch", "/icode/1")
+	cmd.Run()
+	// Socket Connection
+	serverStream := stream.NewDefaultServerStream(":60001")
+	serverStream.Listen(func() {
+		cmd := exec.Command("touch", "/icode/2")
+		cmd.Run()
 
-	if true {
-		iCode.Query()
-	} else {
-		iCode.Invoke()
-	}
+		// Setting Cell
+
+		cell := cell.NewCell()
+
+		if true {
+			iCode.Query(*cell)
+		}
+		cmd = exec.Command("touch", "/icode/inHandler")
+		cmd.Run()
+	})
+
+	cmd = exec.Command("touch", "/icode/end")
+	cmd.Run()
+
 }

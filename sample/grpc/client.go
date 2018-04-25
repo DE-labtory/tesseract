@@ -1,12 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
-	pb "../../grpc"
+	pb "./proto"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

@@ -1,8 +1,6 @@
-package grpc
+package stream
 
-type GrpcServer interface {
-	Start()
-	Connect()
-	SendMsg()
-	ReceiveMsg()
+type Stream interface {
+	Send()
+	Receive()
 }

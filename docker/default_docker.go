@@ -17,10 +17,12 @@ import (
 const (
 	DefaultImageName = "golang"
 	DefaultImageTag  = "1.9"
+	GrpcGoImageName  = "grpc/go"
+	GrpcGoImageTag   = "1.0"
 )
 
-func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, tesseractPath string, shPath string) (container.ContainerCreateCreatedBody, error) {
-
+func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string) (container.ContainerCreateCreatedBody, error) {
+	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
 	image := dockerImage.Name + ":" + dockerImage.Tag
 
@@ -53,7 +55,10 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 		AttachStderr: true,
 	}, &container.HostConfig{
 		CapAdd: []string{"SYS_ADMIN"},
-		Binds:  []string{tesseractPath + ":/tesseract", iCodeInfo.Directory + ":/icode", filepath.Dir(shPath) + ":/sh"},
+		Binds: []string{
+			GOPATH + "/src:/go/src",
+			iCodeInfo.Directory + ":/icode",
+			filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
 	if err != nil {

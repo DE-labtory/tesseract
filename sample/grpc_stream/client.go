@@ -2,11 +2,14 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
-	"os"
 
-	pb "./proto"
+	"fmt"
 
+	"time"
+
+	pb "./proto_stream"
 	"google.golang.org/grpc"
 )
 
@@ -16,29 +19,35 @@ const (
 )
 
 func main() {
-	// Set up a connection to the server.
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Fatalf("fail to dial: %v", err)
 	}
-
 	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
+	client := pb.NewGreeterClient(conn)
+	stream, err := client.SayHello(context.Background())
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				log.Fatalf("close")
+				//close(waitc)
+				//return
+			}
+			if err != nil {
+				log.Fatalf("Failed to receive a note : %v", err)
+			}
+			fmt.Println(in)
+		}
+	}()
 
-	// Contact the server and print out its response.
-	name := defaultName
-	if len(os.Args) > 1 {
-		name = os.Args[1]
+	if err := stream.Send(&pb.HelloRequest{"request name"}); err != nil {
+		log.Fatalf("Failed to send a note: %v", err)
 	}
-	r, err := c.SayHello(context.Background(), &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
+	for {
+		time.Sleep(10 * time.Second)
 	}
-	log.Printf("Greeting: %s", r.Message)
-	r, err = c.SayHelloAgain(context.Background(), &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-
-	log.Printf("Greeting: %s", r.Message)
+	stream.CloseSend()
+	<-waitc
 }

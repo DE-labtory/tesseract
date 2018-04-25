@@ -1,23 +1,25 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net"
 
-	pb "./proto"
+	pb "./proto_stream"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
-	"io"
 )
 
 const (
 	port = ":50051"
 )
 
-type server struct{}
+type server struct {
+	Name string
+}
 
-func (s *server) SayHello(stream *pb.HelloRequest) error {
+func (s *server) SayHello(stream pb.Greeter_SayHelloServer) error {
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
@@ -26,17 +28,10 @@ func (s *server) SayHello(stream *pb.HelloRequest) error {
 		if err != nil {
 			return err
 		}
-		key := serialize(in.Location)
-		... // look for notes to be sent to client
-		for _, note := range s.routeNotes[key] {
-			if err := stream.Send(note); err != nil {
-				return err
-			}
-		}
+		fmt.Println(in.Name)
 	}
-}
 
-func (s *server) SayHelloAgain(stream *pb.HelloRequest) error {
+	return nil
 }
 
 func main() {
@@ -47,7 +42,6 @@ func main() {
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &server{})
 	// Register reflection service on gRPC server.
-	reflection.Register(s)
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

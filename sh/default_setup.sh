@@ -1,5 +1,6 @@
-go build -buildmode=plugin -o /go/src/icode.so /icode/icode.go
-go build -o /go/src/cellcode /tesseract/cellcode/cellcode.go
-/go/src/cellcode /go/src/icode.so
-umount /tesseract
-umount /icode
+go build -buildmode=plugin -o /go/icode.so /icode/icode.go
+go build -o /go/cellcode /go/src/github.com/it-chain/tesseract/cellcode/cellcode.go
+/go/cellcode /go/icode.so
+#umount /go/src
+#umount /icode
+/bin/sh
