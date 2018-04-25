@@ -36,7 +36,7 @@ func main() {
 	cmd := exec.Command("touch", "/icode/1")
 	cmd.Run()
 	// Socket Connection
-	serverStream := stream.NewDefaultServerStream(":60001")
+	serverStream := stream.NewDefaultServerStream(":50001")
 	serverStream.Listen(func() {
 		cmd := exec.Command("touch", "/icode/2")
 		cmd.Run()

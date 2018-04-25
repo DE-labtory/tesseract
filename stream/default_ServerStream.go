@@ -34,12 +34,14 @@ func (s *DefaultServerStream) Listen(handler func()) {
 	server := grpc.NewServer()
 	pb.RegisterStreamServiceServer(server, &DefaultServerStream{})
 	reflection.Register(server)
+	fmt.Println(s.port + "in Listen")
 	if err := server.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
 func (s *DefaultServerStream) Stream(stream pb.StreamService_StreamServer) error {
+	fmt.Println("in Stream")
 	for {
 		in, err := stream.Recv()
 		if err == io.EOF {
