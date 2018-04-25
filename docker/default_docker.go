@@ -4,13 +4,12 @@ import (
 	"context"
 	"io"
 	"os"
+	"path/filepath"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
-
-	"path/filepath"
-
+	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
 )
 
@@ -21,7 +20,7 @@ const (
 	GrpcGoImageTag   = "1.0"
 )
 
-func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
 	image := dockerImage.Name + ":" + dockerImage.Tag
@@ -44,6 +43,13 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 		return res, err
 	}
 
+	portBindings := nat.PortMap{
+		nat.Port(port + "/tcp"): []nat.PortBinding{{
+			HostIP:   "0.0.0.0",
+			HostPort: port,
+		}},
+	}
+
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: dockerImage.Name + ":" + dockerImage.Tag,
 		Cmd: []string{
@@ -53,8 +59,12 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
+		ExposedPorts: nat.PortSet{
+			nat.Port(port + "/tcp"): struct{}{},
+		},
 	}, &container.HostConfig{
-		CapAdd: []string{"SYS_ADMIN"},
+		CapAdd:       []string{"SYS_ADMIN"},
+		PortBindings: portBindings,
 		Binds: []string{
 			GOPATH + "/src:/go/src",
 			iCodeInfo.Directory + ":/icode",

@@ -20,6 +20,7 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 		DockerImage{DefaultImageName, DefaultImageTag},
 		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
 		GOPATH+"/src/github.com/it-chain/tesseract/sh/default_setup.sh",
+		"50001",
 	)
 	assert.NoError(t, err)
 
@@ -32,6 +33,7 @@ func TestStartContainer(t *testing.T) {
 		DockerImage{DefaultImageName, DefaultImageTag},
 		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
 		GOPATH+"/src/github.com/it-chain/tesseract/sh/default_setup.sh",
+		"50001",
 	)
 
 	err = StartContainer(res)
