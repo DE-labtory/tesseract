@@ -3,6 +3,7 @@ package stream
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/it-chain/tesseract/pb"
 	"github.com/stretchr/testify/assert"
@@ -14,8 +15,11 @@ func TestNewDefaultClientStream(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	cs := NewDefaultClientStream("127.0.0.1", "50001")
+
+	cs := NewDefaultClientStream("127.0.0.1", "50003")
 	err := cs.Connect()
+
+	time.Sleep(8 * time.Second)
 
 	assert.NoError(t, err)
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"fmt"
+
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
 )
@@ -17,11 +19,13 @@ type DefaultClientStream struct {
 }
 
 func NewDefaultClientStream(address string, port string) *DefaultClientStream {
+	fmt.Println(address + ":" + port)
 	conn, err := grpc.Dial(address+":"+port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("fail to dial: %v", err)
 	}
-	defer conn.Close()
+	//defer conn.Close()
+
 	client := pb.NewStreamServiceClient(conn)
 
 	return &DefaultClientStream{
@@ -32,7 +36,8 @@ func NewDefaultClientStream(address string, port string) *DefaultClientStream {
 }
 
 func (c *DefaultClientStream) Connect() error {
-	stream, err := c.client.Stream(context.Background())
+	ctx, _ := context.WithCancel(context.Background())
+	stream, err := c.client.Stream(ctx)
 	if err != nil {
 		return err
 	}
@@ -66,7 +71,9 @@ func (c *DefaultClientStream) Connect() error {
 		<-waitc
 	*/
 
-	return nil
+	err = stream.Send(&pb.Request{"testset"})
+
+	return err
 }
 
 func (c *DefaultClientStream) SendRequest(request *pb.Request) error {
