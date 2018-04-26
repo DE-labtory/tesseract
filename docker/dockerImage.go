@@ -5,6 +5,6 @@ type DockerImage struct {
 	Tag  string
 }
 
-func (dc DockerImage) getName() string {
+func (dc DockerImage) getFullName() string {
 	return dc.Name + ":" + dc.Tag
 }
