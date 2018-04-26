@@ -10,16 +10,21 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 
+	"bytes"
+	"io"
+	"os/exec"
+
 	"github.com/it-chain/tesseract"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateContainerWithCellCode(t *testing.T) {
+
 	GOPATH := os.Getenv("GOPATH")
 	res, err := CreateContainerWithCellCode(
 		DockerImage{DefaultImageName, DefaultImageTag},
 		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
-		GOPATH+"/src/github.com/it-chain/tesseract/sh/default_setup.sh",
+		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/sh/default_setup.sh",
 		"50001",
 	)
 	assert.NoError(t, err)
@@ -28,23 +33,18 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 }
 
 func TestStartContainer(t *testing.T) {
+
 	GOPATH := os.Getenv("GOPATH")
 	res, err := CreateContainerWithCellCode(
 		DockerImage{DefaultImageName, DefaultImageTag},
-		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
-		GOPATH+"/src/github.com/it-chain/tesseract/sh/default_setup.sh",
-		"50003",
+		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/container_create_test"},
+		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/sh/default_setup.sh",
+		"50001",
 	)
 
 	err = StartContainer(res)
-	assert.NoError(t, err)
 
-	time.Sleep(10 * time.Second)
-
-	//_, err = os.Stat("../cellcode/query")
-	//assert.NoError(t, err)
-
-	/*	defer func() {
+	defer func() {
 		// Remove Test Docker Container
 		c1 := exec.Command("docker", "ps", "-a", "-f", "ancestor=golang:1.9", "-q")
 		c2 := exec.Command("xargs", "-I", "{}", "docker", "rm", "{}")
@@ -63,8 +63,15 @@ func TestStartContainer(t *testing.T) {
 		c2.Wait()
 
 		// Remove Success File(Query) that created by icode
-		os.Remove("../cellcode/query")
-	}()*/
+		os.Remove("./mock/sh/main")
+	}()
+
+	assert.NoError(t, err)
+
+	time.Sleep(10 * time.Second)
+
+	_, err = os.Stat("./mock/sh/main")
+	assert.NoError(t, err)
 }
 
 func TestPullImage(t *testing.T) {

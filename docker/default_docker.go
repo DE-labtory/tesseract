@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"log"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
@@ -21,9 +23,10 @@ const (
 )
 
 func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
+
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.Name + ":" + dockerImage.Tag
+	image := dockerImage.getName()
 
 	exist, err := HasImage(image)
 
@@ -51,7 +54,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 	}
 
 	res, err = cli.ContainerCreate(ctx, &container.Config{
-		Image: dockerImage.Name + ":" + dockerImage.Tag,
+		Image: image,
 		Cmd: []string{
 			"sh",
 			"/sh/" + filepath.Base(shPath),
@@ -71,6 +74,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 			filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
+	log.Printf(GOPATH + "/src:/go/src")
 	if err != nil {
 		return res, err
 	}
@@ -113,6 +117,7 @@ func PullImage(imageName string) error {
 }
 
 func HasImage(name string) (bool, error) {
+
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 
