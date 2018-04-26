@@ -1,18 +1,14 @@
 syntax = "proto3";
-package message;
+package stream_pb;
 
-// The greeting service definition.
 service StreamService {
-    // Sends a greeting
     rpc Stream (stream Request) returns (stream Response) {}
 }
 
-// The request message containing the user's name.
 message Request {
     string test = 1;
 }
 
-// The response message containing the greetings
 message Response {
     string test = 1;
 }

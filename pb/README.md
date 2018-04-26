@@ -1,4 +1,3 @@
-## Msg
+## pb
 
-Msg is struct to query or invoke.
-But, if there is only Transaction data, it can be removed.
+pb is grpc service to query or invoke.
