@@ -21,9 +21,10 @@ const (
 )
 
 func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
+
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.Name + ":" + dockerImage.Tag
+	image := dockerImage.getName()
 
 	exist, err := HasImage(image)
 
@@ -51,7 +52,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 	}
 
 	res, err = cli.ContainerCreate(ctx, &container.Config{
-		Image: dockerImage.Name + ":" + dockerImage.Tag,
+		Image: image,
 		Cmd: []string{
 			"sh",
 			"/sh/" + filepath.Base(shPath),
