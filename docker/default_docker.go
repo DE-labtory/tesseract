@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"log"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
@@ -72,6 +74,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 			filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
+	log.Printf(GOPATH + "/src:/go/src")
 	if err != nil {
 		return res, err
 	}
@@ -114,6 +117,7 @@ func PullImage(imageName string) error {
 }
 
 func HasImage(name string) (bool, error) {
+
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 
