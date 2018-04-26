@@ -1,4 +1,4 @@
-package stream
+package rpc
 
 type Stream interface {
 	Send()

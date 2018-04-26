@@ -1,4 +1,6 @@
-package stream
+package legacy_stream
+
+/*
 
 import (
 	"context"
@@ -13,6 +15,7 @@ import (
 type DefaultClientStream struct {
 	address string
 	port    string
+	//pb := stream_pb
 
 	client pb.StreamServiceClient
 	stream pb.StreamService_StreamClient
@@ -44,32 +47,6 @@ func (c *DefaultClientStream) Connect() error {
 
 	c.stream = stream
 
-	/*
-		waitc := make(chan struct{})
-		go func() {
-			for {
-				in, err := stream.Recv()
-				if err == io.EOF {
-					log.Fatalf("close")
-					//close(waitc)
-					//return
-				}
-				if err != nil {
-					log.Fatalf("Failed to receive a note : %v", err)
-				}
-				fmt.Println(in)
-			}
-		}()
-
-		if err := stream.Send(&pb.Request{"request name"}); err != nil {
-			log.Fatalf("Failed to send a note: %v", err)
-		}
-		for {
-			time.Sleep(10 * time.Second)
-		}
-		stream.CloseSend()
-		<-waitc
-	*/
 
 	err = stream.Send(&pb.Request{"testset"})
 
@@ -83,3 +60,4 @@ func (c *DefaultClientStream) SendRequest(request *pb.Request) error {
 func (c *DefaultClientStream) SendResponse() (response *pb.Response, err error) {
 	return c.stream.Recv()
 }
+*/

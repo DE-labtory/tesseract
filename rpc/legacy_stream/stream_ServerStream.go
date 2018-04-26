@@ -1,5 +1,6 @@
-package stream
+package legacy_stream
 
+/*
 import (
 	"fmt"
 	"io"
@@ -36,3 +37,4 @@ func (s *DefaultServerStream) Stream(stream pb.StreamService_StreamServer) error
 
 	return nil
 }
+*/
