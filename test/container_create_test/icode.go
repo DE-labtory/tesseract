@@ -11,12 +11,12 @@ type ICode struct {
 }
 
 func (ic *ICode) Query(cell cell.Cell) {
-	cmd := exec.Command("touch", "/icode/query")
+	cmd := exec.Command("touch", "/cellcode/query")
 	cmd.Run()
 }
 
 func (ic *ICode) Invoke(cell cell.Cell) {
-	cmd := exec.Command("touch", "/icode/invoke")
+	cmd := exec.Command("touch", "/cellcode/invoke")
 	cmd.Run()
 }
 

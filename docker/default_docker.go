@@ -2,29 +2,31 @@ package docker
 
 import (
 	"context"
-
 	"io"
 	"os"
+	"path/filepath"
+
+	"log"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
+	"github.com/docker/go-connections/nat"
+	"github.com/it-chain/tesseract"
 )
 
 const (
-	imageName = "golang"
-	imageTag  = "1.9"
+	DefaultImageName = "golang"
+	DefaultImageTag  = "1.9"
+	GrpcGoImageName  = "grpc/go"
+	GrpcGoImageTag   = "1.0"
 )
 
-type ICodeInfo struct {
-	Name      string
-	Directory string
-}
+func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
 
-func CreateContainerWithCellCode(iCodeInfo ICodeInfo, cellCodeDir string) (container.ContainerCreateCreatedBody, error) {
-
+	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := imageName + ":" + imageTag
+	image := dockerImage.getName()
 
 	exist, err := HasImage(image)
 
@@ -44,20 +46,36 @@ func CreateContainerWithCellCode(iCodeInfo ICodeInfo, cellCodeDir string) (conta
 		return res, err
 	}
 
+	portBindings := nat.PortMap{
+		nat.Port(port + "/tcp"): []nat.PortBinding{{
+			HostIP:   "0.0.0.0",
+			HostPort: port,
+		}},
+	}
+
 	res, err = cli.ContainerCreate(ctx, &container.Config{
-		Image: imageName + ":" + imageTag,
+		Image: image,
 		Cmd: []string{
 			"sh",
-			"/cellcode/setup.sh",
-			// Need to send smartcontract path
+			"/sh/" + filepath.Base(shPath),
+			port,
 		},
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
+		ExposedPorts: nat.PortSet{
+			nat.Port(port + "/tcp"): struct{}{},
+		},
 	}, &container.HostConfig{
-		Binds: []string{cellCodeDir + ":/cellcode", iCodeInfo.Directory + ":/icode"},
+		CapAdd:       []string{"SYS_ADMIN"},
+		PortBindings: portBindings,
+		Binds: []string{
+			GOPATH + "/src:/go/src",
+			iCodeInfo.Directory + ":/icode",
+			filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
+	log.Printf(GOPATH + "/src:/go/src")
 	if err != nil {
 		return res, err
 	}
@@ -100,6 +118,7 @@ func PullImage(imageName string) error {
 }
 
 func HasImage(name string) (bool, error) {
+
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
 

@@ -1,22 +1,56 @@
 package tesseract
 
+import "github.com/it-chain/tesseract/docker"
+
 type Tesseract struct {
 }
 
-func (t * Tesseract) NewTesseract() {
-	// Docker IMAGE pull
+type ICodeInfo struct {
+	Name      string
+	Directory string
+}
+
+func (t *Tesseract) NewTesseract() {
 }
 
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
-func (t *Tesseract) SetupContainer() {
-	// args : SmartContract info
+func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo, shPath string) error {
+	// Todo : ImageName과 ImageTag를 parameter로 받아와야 함 (ICodeInfo에 포함될 수도 있음)
+	// Todo : shPath는 어디서 받아올 것인가?
+	// Todo : port 선정 기준은? (포트 번호 생성 함수 필요?)
+
+	port := "50001"
+
+	// Docker IMAGE pull
+	r, err := docker.HasImage(docker.DefaultImageName + ":" + docker.DefaultImageTag)
+	if err != nil {
+		return err
+	}
+	if r {
+		docker.PullImage(docker.DefaultImageName + ":" + docker.DefaultImageTag)
+	}
+
 	// Create Docker
-	// Copy ShimCode
-	// Copy SmartContract
-	// (Set DB info)
-	// Running ShimCode on Container
+	res, err := docker.CreateContainerWithCellCode(
+		docker.DockerImage{docker.DefaultImageName, docker.DefaultImageTag},
+		iCodeInfo,
+		shPath,
+		port,
+	)
+	if err != nil {
+		return err
+	}
+
+	// StartContainer
+	err = docker.StartContainer(res)
+	if err != nil {
+		return err
+	}
+
 	// (Connect socket)
 	// Get Container handler
+
+	return nil
 }
 
 func (t *Tesseract) QueryOrInvoke() {
