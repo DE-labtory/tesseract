@@ -1,12 +1,11 @@
 package rpc
 
 import (
-	"fmt"
-	"testing"
-
 	"context"
+	"fmt"
 	"log"
 	"net"
+	"testing"
 
 	"github.com/it-chain/tesseract/pb"
 	"github.com/stretchr/testify/assert"

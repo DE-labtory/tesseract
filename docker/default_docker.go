@@ -3,10 +3,9 @@ package docker
 import (
 	"context"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
-
-	"log"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"

@@ -1,12 +1,11 @@
 package main
 
 import (
+	"log"
+	"net"
 	"os"
 	"os/exec"
 	"plugin"
-
-	"log"
-	"net"
 
 	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/pb"

@@ -1,18 +1,17 @@
 package docker
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"log"
 	"os"
+	"os/exec"
 	"testing"
 	"time"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
-
-	"bytes"
-	"io"
-	"os/exec"
 
 	"github.com/it-chain/tesseract"
 	"github.com/stretchr/testify/assert"
