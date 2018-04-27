@@ -47,25 +47,8 @@ func ListenMockServer(ms *MockServer, port string) (*grpc.Server, net.Listener) 
 /* Test
 --------------------*/
 func TestNewDefaultRpcClient(t *testing.T) {
-	cs := NewDefaultRpcClient("127.0.0.1:50001")
+	cs, _ := NewDefaultRpcClient("127.0.0.1:50001")
 	fmt.Println(cs)
-}
-
-func TestConnect(t *testing.T) {
-	port := ":50001"
-
-	ms := &MockServer{}
-	server, lis := ListenMockServer(ms, port)
-
-	defer func() {
-		server.Stop()
-		lis.Close()
-	}()
-
-	cs := NewDefaultRpcClient("127.0.0.1" + port)
-	err := cs.Connect()
-
-	assert.NoError(t, err)
 }
 
 func TestRunICode(t *testing.T) {
@@ -79,9 +62,7 @@ func TestRunICode(t *testing.T) {
 		lis.Close()
 	}()
 
-	cs := NewDefaultRpcClient("127.0.0.1" + port)
-	err := cs.Connect()
-	log.Println(cs)
+	cs, err := NewDefaultRpcClient("127.0.0.1" + port)
 
 	assert.NoError(t, err)
 

@@ -2,10 +2,7 @@ package rpc
 
 import (
 	"context"
-	"log"
 	"time"
-
-	"fmt"
 
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
@@ -19,30 +16,27 @@ type DefaultRpcClient struct {
 	cancel  context.CancelFunc
 }
 
-func NewDefaultRpcClient(address string) *DefaultRpcClient {
-	fmt.Println(address)
+func NewDefaultRpcClient(address string) (*DefaultRpcClient, error) {
+
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
+
 	if err != nil {
-		log.Fatalf("fail to dial: %v", err)
+		return nil, err
 	}
 
 	client := pb.NewDefaultServiceClient(conn)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 
 	return &DefaultRpcClient{
 		address: address,
 		conn:    conn,
 		client:  client,
-	}
+		ctx:     ctx,
+		cancel:  cancel,
+	}, nil
 }
 
-func (c *DefaultRpcClient) Connect() error {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	c.ctx = ctx
-	c.cancel = cancel
-
-	return nil
-}
-
+//todo test request -> request
 func (c *DefaultRpcClient) RunICode(request *pb.Request) (*pb.Response, error) {
 	return c.client.RunICode(c.ctx, &pb.Request{request.Test})
 }
