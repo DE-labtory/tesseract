@@ -25,7 +25,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.getName()
+	image := dockerImage.getFullName()
 
 	exist, err := HasImage(image)
 

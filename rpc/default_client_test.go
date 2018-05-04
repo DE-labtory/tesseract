@@ -2,12 +2,14 @@ package rpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
 	"testing"
 
 	"github.com/it-chain/tesseract/pb"
+	"github.com/it-chain/yggdrasill/transaction"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -19,7 +21,7 @@ type MockServer struct {
 }
 
 func (s *MockServer) RunICode(ctx context.Context, request *pb.Request) (*pb.Response, error) {
-	return &pb.Response{request.Test}, nil
+	return &pb.Response{[]byte("result")}, nil
 }
 
 func ListenMockServer(ms *MockServer, port string) (*grpc.Server, net.Listener) {
@@ -65,12 +67,14 @@ func TestRunICode(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	res, err := cs.RunICode(&pb.Request{"TestRunICode"})
+	tx, err := json.Marshal(transaction.DefaultTransaction{ID: "123"})
+
+	res, err := cs.RunICode(&pb.Request{Tx: tx})
 
 	log.Println(res)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "TestRunICode", res.Test)
+	assert.Equal(t, "test", string(res.Result))
 
 	log.Println("Success")
 }

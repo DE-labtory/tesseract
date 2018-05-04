@@ -7,6 +7,9 @@ import (
 	"os/exec"
 	"plugin"
 
+	"fmt"
+
+	"github.com/it-chain/leveldb-wrapper"
 	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/pb"
 	"github.com/it-chain/tesseract/rpc"
@@ -15,11 +18,12 @@ import (
 )
 
 type ICode interface {
-	Query(cell.Cell)
-	Invoke(cell.Cell)
+	Query(cell.Cell) pb.Response
+	Invoke(cell.Cell) pb.Response
 }
 
 func main() {
+	fmt.Println(os.Args)
 	if len(os.Args) != 3 {
 		os.Exit(1)
 	}
@@ -39,24 +43,33 @@ func main() {
 
 	iCode := iCodePlugin.(ICode)
 
+	//init DB
+	dbHandler := InitDB("wsdb")
+
 	// Socket Connection
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := rpc.NewDefaultRpcServer(port, func() {
+	s := rpc.NewDefaultRpcServer(port, func(tx *cell.TxInfo) pb.Response {
 		cmd := exec.Command("touch", "/icode/2")
 		cmd.Run()
 
-		// Setting Cell
-		cell := cell.NewCell()
+		var res pb.Response
 
-		if true {
-			iCode.Query(*cell)
+		// Setting Cell
+		cell := cell.NewCell(tx, dbHandler)
+
+		if cell.Tx.Method == "query" {
+			res = iCode.Query(*cell)
+		} else if cell.Tx.Method == "invoke" {
+			res = iCode.Invoke(*cell)
 		}
 		cmd = exec.Command("touch", "/icode/inHandler")
 		cmd.Run()
+
+		return res
 	})
 	server := grpc.NewServer()
 	pb.RegisterDefaultServiceServer(server, s)
@@ -69,4 +82,10 @@ func main() {
 	cmd := exec.Command("touch", "/icode/end")
 	cmd.Run()
 
+}
+
+func InitDB(dbName string) *leveldbwrapper.DBHandle {
+	path := "./wsdb"
+	dbProvider := leveldbwrapper.CreateNewDBProvider(path)
+	return dbProvider.GetDBHandle(dbName)
 }
