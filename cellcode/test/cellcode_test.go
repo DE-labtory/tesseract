@@ -60,15 +60,29 @@ func (c *MockClient) Close() {
 --------------------*/
 func before(port string) {
 	GOPATH := os.Getenv("GOPATH")
-	cmd := exec.Command("sh", GOPATH+"/src/github.com/it-chain/tesseract/cellcode/test/cellcode_test.sh "+port)
+	cmd := exec.Command("go", "build", "-buildmode=plugin",
+		"-o", GOPATH+"/src/github.com/it-chain/tesseract/cellcode/test/icode.so",
+		GOPATH+"/src/github.com/it-chain/tesseract/test/icode_test/icode.go")
 	cmd.Run()
-	time.Sleep(3 * time.Second)
+
+	cmd2 := exec.Command("go", "run",
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/cellcode.go",
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/test/icode.so", port)
+	cmd2.Start()
+
+	time.Sleep(5 * time.Second)
 }
 
 func after() {
 	GOPATH := os.Getenv("GOPATH")
 	os.RemoveAll(GOPATH + "/src/github.com/it-chain/tesseract/cellcode/test/wsdb")
 	os.RemoveAll(GOPATH + "/src/github.com/it-chain/tesseract/cellcode/test/icode.so")
+
+	//kill -9 `lsof -i :"50011" | awk '{print $2}' | sed '1d'`
+	cmd := exec.Command("kill", "-9", "`lsof -i :'50011' | awk '{print $2}' | sed '1d'`")
+	err := cmd.Run()
+
+	fmt.Println(err)
 }
 
 /* Test

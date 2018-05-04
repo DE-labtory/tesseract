@@ -53,21 +53,18 @@ func main() {
 	}
 
 	s := rpc.NewDefaultRpcServer(port, func(tx *cell.TxInfo) pb.Response {
-		cmd := exec.Command("touch", "/icode/2")
-		cmd.Run()
-
 		var res pb.Response
 
 		// Setting Cell
 		cell := cell.NewCell(tx, dbHandler)
 
 		if cell.Tx.Method == "query" {
+			fmt.Println("before query")
 			res = iCode.Query(*cell)
 		} else if cell.Tx.Method == "invoke" {
+			fmt.Println("before invoke")
 			res = iCode.Invoke(*cell)
 		}
-		cmd = exec.Command("touch", "/icode/inHandler")
-		cmd.Run()
 
 		return res
 	})
