@@ -15,7 +15,7 @@ type Config struct {
 type ICodeInfo struct {
 	Name        string
 	Directory   string
-	DockerImage docker.DockerImage
+	DockerImage docker.Image
 	language    string // ENUM 으로 대체하면 좋음
 }
 
@@ -47,12 +47,14 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 		t.Config.shPath,
 		port,
 	)
+
 	if err != nil {
 		return err
 	}
 
 	// StartContainer
 	err = docker.StartContainer(res)
+
 	if err != nil {
 		return err
 	}

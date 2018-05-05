@@ -13,7 +13,6 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 
-	"github.com/it-chain/tesseract"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -21,8 +20,8 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res, err := CreateContainerWithCellCode(
-		DockerImage{DefaultImageName, DefaultImageTag},
-		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/icode_test"},
+		Image{DefaultImageName, DefaultImageTag},
+		GOPATH+"/src/github.com/it-chain/tesseract/test/icode_test",
 		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/sh/default_setup.sh",
 		"50001",
 	)
@@ -35,8 +34,8 @@ func TestStartContainer(t *testing.T) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res, err := CreateContainerWithCellCode(
-		DockerImage{DefaultImageName, DefaultImageTag},
-		tesseract.ICodeInfo{"icode", GOPATH + "/src/github.com/it-chain/tesseract/test/container_create_test"},
+		Image{DefaultImageName, DefaultImageTag},
+		GOPATH+"/src/github.com/it-chain/tesseract/test/icode_test",
 		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/sh/default_setup.sh",
 		"50001",
 	)
