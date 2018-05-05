@@ -6,9 +6,12 @@ service DefaultService {
 }
 
 message Request {
-    string test = 1;
+    bytes Tx = 1;
 }
 
 message Response {
-    string test = 1;
+    string Result = 1;
+    string Method = 2;
+    bytes Data = 3;
+    string Error = 4;
 }

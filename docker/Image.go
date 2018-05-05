@@ -1,10 +1,10 @@
 package docker
 
-type DockerImage struct {
+type Image struct {
 	Name string
 	Tag  string
 }
 
-func (dc DockerImage) getFullName() string {
+func (dc Image) getFullName() string {
 	return dc.Name + ":" + dc.Tag
 }

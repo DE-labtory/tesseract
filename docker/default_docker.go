@@ -3,16 +3,14 @@ package docker
 import (
 	"context"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
-
-	"log"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"github.com/docker/go-connections/nat"
-	"github.com/it-chain/tesseract"
 )
 
 const (
@@ -22,11 +20,11 @@ const (
 	GrpcGoImageTag   = "1.0"
 )
 
-func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.ICodeInfo, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.getName()
+	image := dockerImage.getFullName()
 
 	exist, err := HasImage(image)
 
@@ -71,7 +69,7 @@ func CreateContainerWithCellCode(dockerImage DockerImage, iCodeInfo tesseract.IC
 		PortBindings: portBindings,
 		Binds: []string{
 			GOPATH + "/src:/go/src",
-			iCodeInfo.Directory + ":/icode",
+			dir + ":/icode",
 			filepath.Dir(shPath) + ":/sh"},
 	}, nil, "")
 
