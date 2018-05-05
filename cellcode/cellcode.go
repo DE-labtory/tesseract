@@ -52,7 +52,7 @@ func main() {
 
 	//init DB
 	//todo 외부로 부터 wsdb이름 받아오기
-	dbHandler = InitDB("wsdb")
+	dbHandler = initDB("wsdb")
 
 	// Socket Connection
 	lis, err := net.Listen("tcp", ":"+port)
@@ -62,7 +62,7 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := rpc.NewDefaultRpcServer(port, Handle)
+	s := rpc.NewDefaultRpcServer(port, handle)
 
 	server := grpc.NewServer()
 	defer server.Stop()
@@ -77,14 +77,14 @@ func main() {
 	}
 }
 
-func InitDB(dbName string) *leveldbwrapper.DBHandle {
+func initDB(dbName string) *leveldbwrapper.DBHandle {
 
 	path := "./wsdb"
 	dbProvider := leveldbwrapper.CreateNewDBProvider(path)
 	return dbProvider.GetDBHandle(dbName)
 }
 
-func Handle(tx *cell.TxInfo) pb.Response {
+func handle(tx *cell.TxInfo) pb.Response {
 
 	log.Printf("Run Icode [%s]", tx)
 
