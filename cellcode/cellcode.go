@@ -4,7 +4,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"os/exec"
 	"plugin"
 
 	"fmt"
@@ -17,13 +16,18 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
+var iCode ICode
+var dbHandler *leveldbwrapper.DBHandle
+
 type ICode interface {
 	Query(cell.Cell) pb.Response
 	Invoke(cell.Cell) pb.Response
 }
 
 func main() {
-	fmt.Println(os.Args)
+
+	log.Println("Cellcode is Starting")
+
 	if len(os.Args) != 3 {
 		os.Exit(1)
 	}
@@ -37,52 +41,65 @@ func main() {
 	}
 
 	iCodePlugin, err := plug.Lookup("ICodeInstance")
+
 	if err != nil {
 		os.Exit(1)
 	}
 
-	iCode := iCodePlugin.(ICode)
+	iCode = iCodePlugin.(ICode)
+
+	log.Println("Icode is initiated")
 
 	//init DB
-	dbHandler := InitDB("wsdb")
+	//todo 외부로 부터 wsdb이름 받아오기
+	dbHandler = InitDB("wsdb")
 
 	// Socket Connection
 	lis, err := net.Listen("tcp", ":"+port)
+	defer lis.Close()
+
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := rpc.NewDefaultRpcServer(port, func(tx *cell.TxInfo) pb.Response {
-		var res pb.Response
+	s := rpc.NewDefaultRpcServer(port, Handle)
 
-		// Setting Cell
-		cell := cell.NewCell(tx, dbHandler)
-
-		if cell.Tx.Method == "query" {
-			fmt.Println("before query")
-			res = iCode.Query(*cell)
-		} else if cell.Tx.Method == "invoke" {
-			fmt.Println("before invoke")
-			res = iCode.Invoke(*cell)
-		}
-
-		return res
-	})
 	server := grpc.NewServer()
+	defer server.Stop()
+
 	pb.RegisterDefaultServiceServer(server, s)
 	reflection.Register(server)
 
 	if err := server.Serve(lis); err != nil {
+		server.Stop()
+		lis.Close()
 		log.Fatalf("failed to serve: %v", err)
 	}
-
-	cmd := exec.Command("touch", "/icode/end")
-	cmd.Run()
-
 }
 
 func InitDB(dbName string) *leveldbwrapper.DBHandle {
+
 	path := "./wsdb"
 	dbProvider := leveldbwrapper.CreateNewDBProvider(path)
 	return dbProvider.GetDBHandle(dbName)
+}
+
+func Handle(tx *cell.TxInfo) pb.Response {
+
+	log.Printf("Run Icode [%s]", tx)
+
+	var res pb.Response
+	// Setting Cell
+	cell := cell.NewCell(tx, dbHandler)
+
+	if cell.Tx.Method == "query" {
+		fmt.Println("before query")
+		res = iCode.Query(*cell)
+	} else if cell.Tx.Method == "invoke" {
+		fmt.Println("before invoke")
+		res = iCode.Invoke(*cell)
+	}
+
+	log.Printf("End Icode [%s]", res)
+	return res
 }

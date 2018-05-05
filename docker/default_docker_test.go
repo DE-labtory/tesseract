@@ -21,7 +21,7 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	res, err := CreateContainerWithCellCode(
 		Image{DefaultImageName, DefaultImageTag},
-		GOPATH+"/src/github.com/it-chain/tesseract/test/icode_test",
+		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/icode",
 		GOPATH+"/src/github.com/it-chain/tesseract/docker/mock/sh/default_setup.sh",
 		"50001",
 	)
@@ -55,6 +55,7 @@ func TestStartContainer(t *testing.T) {
 
 	assert.NoError(t, err)
 
+	//연속으로 실행시킬 경우 docker가 느려지는지 timeout을 늘려야지만 성공함
 	time.Sleep(60 * time.Second)
 
 	_, err = os.Stat("./mock/sh/main")
@@ -98,6 +99,9 @@ func TestHasImageWhenImageExist(t *testing.T) {
 }
 
 func TestHasImageWhenImageDoesNotExist(t *testing.T) {
+
+	//before
+	clearContainer()
 
 	//given
 	image := DefaultImageName + ":" + DefaultImageTag
