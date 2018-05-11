@@ -68,14 +68,14 @@ func SetupTest(t *testing.T, port string) func() {
 
 	GOPATH := os.Getenv("GOPATH")
 	cmd := exec.Command("go", "build", "-buildmode=plugin",
-		"-o", GOPATH+"/src/github.com/it-chain/tesseract/cellcode/test/icode.so",
-		GOPATH+"/src/github.com/it-chain/tesseract/test/icode_test/icode.go")
+		"-o", GOPATH+"/src/github.com/it-chain/tesseract/cellcode/mock/tmp/icode.so",
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/mock/icode/icode.go")
 	err := cmd.Run()
 	assert.NoError(t, err)
 
 	cmd2 := exec.Command("go", "run",
 		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/cellcode.go",
-		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/test/icode.so", port)
+		GOPATH+"/src/github.com/it-chain/tesseract/cellcode/mock/tmp/icode.so", port)
 
 	//pgid를 set(한번에 kill하기 위해)
 	cmd2.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
@@ -94,23 +94,33 @@ func SetupTest(t *testing.T, port string) func() {
 		if err := syscall.Kill(-cmd2.Process.Pid, syscall.SIGINT); err != nil {
 			t.Fatal("failed to kill process: ", err)
 		}
+
+		//os.RemoveAll("./wsdb")
 	}
-}
-
-func after() {
-	GOPATH := os.Getenv("GOPATH")
-	os.RemoveAll(GOPATH + "/src/github.com/it-chain/tesseract/cellcode/test/wsdb")
-	os.RemoveAll(GOPATH + "/src/github.com/it-chain/tesseract/cellcode/test/icode.so")
-
-	//kill -9 `lsof -i :"50011" | awk '{print $2}' | sed '1d'`
-	cmd := exec.Command("kill", "-9", "`lsof -i :'50011' | awk '{print $2}' | sed '1d'`")
-	err := cmd.Run()
-
-	fmt.Println(err)
 }
 
 /* Test
 --------------------*/
+func TestInvokeInitA(t *testing.T) {
+	port := "50011"
+	defer SetupTest(t, port)()
+
+	mc, _ := NewMockClient("127.0.0.1:" + port)
+	tx, _ := json.Marshal(cell.TxInfo{
+		Method: "invoke",
+		ID:     "124",
+		Params: cell.Params{
+			Type:     1,
+			Function: "initA",
+			Args:     []string{""},
+		},
+	})
+
+	res, err := mc.RunICode(&pb.Request{Tx: tx})
+	assert.NoError(t, err)
+	assert.Equal(t, res.Result, "Success")
+}
+
 func TestQueryGetA(t *testing.T) {
 	port := "50011"
 	defer SetupTest(t, port)()
@@ -132,30 +142,11 @@ func TestQueryGetA(t *testing.T) {
 	m := make(map[string]string)
 	err = json.Unmarshal(res.Data, &m)
 	assert.NoError(t, err)
-}
-
-func TestInvokeInitA(t *testing.T) {
-	port := "50011"
-	defer SetupTest(t, port)()
-
-	mc, _ := NewMockClient("127.0.0.1:" + port)
-	tx, _ := json.Marshal(cell.TxInfo{
-		Method: "invoke",
-		ID:     "124",
-		Params: cell.Params{
-			Type:     1,
-			Function: "initA",
-			Args:     []string{""},
-		},
-	})
-
-	res, err := mc.RunICode(&pb.Request{Tx: tx})
-	assert.NoError(t, err)
-
-	fmt.Println(res)
+	assert.Equal(t, m["A"], "0")
 }
 
 func TestInvokeIncA(t *testing.T) {
+
 	port := "50011"
 	defer SetupTest(t, port)()
 
@@ -197,7 +188,7 @@ func TestAHundredTimesQuery(t *testing.T) {
 		_, err := mc.RunICode(&pb.Request{Tx: tx})
 		assert.NoError(t, err)
 	}
-	endTime := time.Now()
 
+	endTime := time.Now()
 	assert.WithinDuration(t, endTime, startTime, 2*time.Second)
 }
