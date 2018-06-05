@@ -5,6 +5,6 @@ type Image struct {
 	Tag  string
 }
 
-func (dc Image) getFullName() string {
+func (dc Image) GetFullName() string {
 	return dc.Name + ":" + dc.Tag
 }

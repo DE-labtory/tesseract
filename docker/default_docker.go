@@ -24,7 +24,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.getFullName()
+	image := dockerImage.GetFullName()
 
 	exist, err := HasImage(image)
 

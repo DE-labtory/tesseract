@@ -25,41 +25,41 @@ func NewTesseract(c Config) *Tesseract {
 
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
 func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
-	// Todo : ImageName과 ImageTag를 parameter로 받아와야 함 (ICodeInfo에 포함될 수도 있음)
-	// Todo : shPath는 어디서 받아올 것인가? (config 쪽으로, default는 있고)
 	// Todo : port 선정 기준은? (포트 번호 생성 함수 필요?)
+
+	if iCodeInfo.DockerImage.Name == "" {
+		iCodeInfo.DockerImage.Name = docker.DefaultImageName
+		iCodeInfo.DockerImage.Tag = docker.DefaultImageTag
+	}
 
 	port := "50001"
 
 	// Docker IMAGE pull
-	r, err := docker.HasImage(docker.DefaultImageName + ":" + docker.DefaultImageTag)
+	r, err := docker.HasImage(iCodeInfo.DockerImage.GetFullName())
 	if err != nil {
 		return err
 	}
-	if r {
-		docker.PullImage(docker.DefaultImageName + ":" + docker.DefaultImageTag)
+	if !r {
+		docker.PullImage(iCodeInfo.DockerImage.GetFullName())
 	}
 
 	// Create Docker
 	res, err := docker.CreateContainerWithCellCode(
-		docker.DockerImage{docker.DefaultImageName, docker.DefaultImageTag},
-		iCodeInfo,
+		docker.Image{Name: docker.DefaultImageName, Tag: docker.DefaultImageTag},
+		iCodeInfo.Directory,
 		t.Config.shPath,
 		port,
 	)
-
 	if err != nil {
 		return err
 	}
 
 	// StartContainer
 	err = docker.StartContainer(res)
-
 	if err != nil {
 		return err
 	}
 
-	// (Connect socket)
 	// Get Container handler
 
 	return nil
