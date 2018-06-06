@@ -16,8 +16,6 @@ import (
 const (
 	DefaultImageName = "golang"
 	DefaultImageTag  = "1.9"
-	GrpcGoImageName  = "grpc/go"
-	GrpcGoImageTag   = "1.0"
 )
 
 func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
@@ -127,6 +125,10 @@ func HasImage(name string) (bool, error) {
 	}
 
 	for _, image := range imageList {
+
+		if len(image.RepoTags) == 0 {
+			continue
+		}
 		if name == image.RepoTags[0] {
 			return true, nil
 		}
