@@ -2,8 +2,11 @@ package tesseract
 
 import (
 	"net"
+	"time"
 
 	"strconv"
+
+	"log"
 
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/rpc"
@@ -14,11 +17,11 @@ type ContainerID = string
 
 type Tesseract struct {
 	Config  Config
-	clients map[ContainerID]rpc.Client
+	Clients map[ContainerID]rpc.Client
 }
 
 type Config struct {
-	shPath string
+	ShPath string
 }
 
 type ICodeInfo struct {
@@ -28,18 +31,20 @@ type ICodeInfo struct {
 	language    string // ENUM 으로 대체하면 좋음
 }
 
-func NewTesseract(c Config) *Tesseract {
+func New(c Config) *Tesseract {
 	return &Tesseract{
 		Config:  c,
-		clients: make(map[string]rpc.Client),
+		Clients: make(map[string]rpc.Client),
 	}
 }
 
 var ErrFailedPullImage = errors.New("failed to pull image")
 var defaultPort = "50001"
+var ipAddress = "127.0.0.1"
 
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
-func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
+// todo sh를 실행시키는데 시간이 많이 걸려서 client connect전에 time을 걸어놓았음 다르게 처리할 방법이 필요함
+func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 
 	// Todo : port 선정 기준은? (포트 번호 생성 함수 필요?)
 	if iCodeInfo.DockerImage.Name == "" {
@@ -51,53 +56,51 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 	var err error
 
 	if port, err = getAvailablePort(); err != nil {
-		return err
+		return "", err
 	}
 
 	if err = pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
-		return ErrFailedPullImage
+		return "", ErrFailedPullImage
 	}
 
 	// Create Docker
 	res, err := docker.CreateContainerWithCellCode(
 		docker.Image{Name: docker.DefaultImageName, Tag: docker.DefaultImageTag},
 		iCodeInfo.Directory,
-		t.Config.shPath,
+		t.Config.ShPath,
 		port,
 	)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// StartContainer
 	err = docker.StartContainer(res)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	client, err := createClient(res.ID)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	t.clients[res.ID] = client
+	t.Clients[res.ID] = client
 
-	return nil
+	return res.ID, nil
 }
 
 func createClient(containerID ContainerID) (rpc.Client, error) {
 
-	// Get Container handler
-	ipAddress, err := docker.GetLocalIPAddressFromContainer(containerID)
+	//todo need to remove
+	//todo client connect retry or ip check
+	//todo maybe need ping operation
+	time.Sleep(60 * time.Second)
 
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := rpc.Connect(ipAddress)
+	client, err := rpc.Connect(ipAddress + ":" + defaultPort)
 
 	if err != nil {
 		return nil, err
@@ -110,7 +113,7 @@ func createClient(containerID ContainerID) (rpc.Client, error) {
 func getAvailablePort() (string, error) {
 
 	for {
-		lis, err := net.Listen("tcp", defaultPort)
+		lis, err := net.Listen("tcp", "127.0.0.1:"+defaultPort)
 
 		if err == nil {
 			lis.Close()
@@ -154,4 +157,8 @@ func (t *Tesseract) QueryOrInvoke() {
 
 func (t *Tesseract) StopContainer() {
 
+	for name, client := range t.Clients {
+		log.Println("rpc client [%s] is closing", name)
+		client.Close()
+	}
 }

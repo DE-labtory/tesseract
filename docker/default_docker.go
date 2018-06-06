@@ -72,6 +72,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}, nil, "")
 
 	log.Printf(GOPATH + "/src:/go/src")
+
 	if err != nil {
 		return res, err
 	}
@@ -149,4 +150,19 @@ func HasImage(name string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func CloseContainer(id string) error {
+
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+
+	err := cli.ContainerKill(ctx, id, "9")
+	if err != nil {
+		return err
+	}
+
+	cli.ContainerRemove(ctx, id, types.ContainerRemoveOptions{})
+
+	return nil
 }

@@ -36,6 +36,7 @@ func main() {
 	port := os.Args[2]
 
 	plug, err := plugin.Open(iCodePath)
+
 	if err != nil {
 		os.Exit(1)
 	}
