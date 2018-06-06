@@ -92,6 +92,20 @@ func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
 	return nil
 }
 
+func GetLocalIPAddressFromContainer(containerID string) (string, error) {
+	ctx := context.Background()
+	cli, err := docker.NewEnvClient()
+
+	inspectBody, err := cli.ContainerInspect(ctx, containerID)
+
+	if err != nil {
+		// An error occurred while starting the container!
+		return "", err
+	}
+
+	return inspectBody.NetworkSettings.IPAddress, nil
+}
+
 func PullImage(imageName string) error {
 
 	ctx := context.Background()

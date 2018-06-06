@@ -10,9 +10,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type ContainerID = string
+
 type Tesseract struct {
 	Config  Config
-	clients map[string]rpc.Client
+	clients map[ContainerID]rpc.Client
 }
 
 type Config struct {
@@ -52,7 +54,7 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 		return err
 	}
 
-	if err := pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
+	if err = pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
 		return ErrFailedPullImage
 	}
 
@@ -70,13 +72,38 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 
 	// StartContainer
 	err = docker.StartContainer(res)
+
 	if err != nil {
 		return err
 	}
 
-	// Get Container handler
+	client, err := createClient(res.ID)
+
+	if err != nil {
+		return err
+	}
+
+	t.clients[res.ID] = client
 
 	return nil
+}
+
+func createClient(containerID ContainerID) (rpc.Client, error) {
+
+	// Get Container handler
+	ipAddress, err := docker.GetLocalIPAddressFromContainer(containerID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := rpc.Connect(ipAddress)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 //1씩 증가 시키며 port를 확인한다
@@ -123,4 +150,8 @@ func (t *Tesseract) QueryOrInvoke() {
 	// Send Query or Invoke massage
 	// Receive result
 	// Return result
+}
+
+func (t *Tesseract) StopContainer() {
+
 }
