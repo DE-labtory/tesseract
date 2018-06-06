@@ -2,6 +2,7 @@ package tesseract
 
 import (
 	"github.com/it-chain/tesseract/docker"
+	"github.com/pkg/errors"
 )
 
 type Tesseract struct {
@@ -23,6 +24,8 @@ func NewTesseract(c Config) *Tesseract {
 	return &Tesseract{Config: c}
 }
 
+var ErrFailedPullImage = errors.New("failed to pull image")
+
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
 func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 
@@ -34,13 +37,8 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 
 	port := "50001"
 
-	// Docker IMAGE pull
-	r, err := docker.HasImage(iCodeInfo.DockerImage.GetFullName())
-	if err != nil {
-		return err
-	}
-	if !r {
-		docker.PullImage(iCodeInfo.DockerImage.GetFullName())
+	if err := pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
+		return ErrFailedPullImage
 	}
 
 	// Create Docker
@@ -62,6 +60,22 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 	}
 
 	// Get Container handler
+
+	return nil
+}
+
+func pullImage(ImageFullName string) error {
+
+	// Docker IMAGE pull
+	r, err := docker.HasImage(ImageFullName)
+
+	if err != nil {
+		return err
+	}
+
+	if !r {
+		docker.PullImage(ImageFullName)
+	}
 
 	return nil
 }
