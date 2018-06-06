@@ -1,12 +1,18 @@
 package tesseract
 
 import (
+	"net"
+
+	"strconv"
+
 	"github.com/it-chain/tesseract/docker"
+	"github.com/it-chain/tesseract/rpc"
 	"github.com/pkg/errors"
 )
 
 type Tesseract struct {
-	Config Config
+	Config  Config
+	clients map[string]rpc.Client
 }
 
 type Config struct {
@@ -21,10 +27,14 @@ type ICodeInfo struct {
 }
 
 func NewTesseract(c Config) *Tesseract {
-	return &Tesseract{Config: c}
+	return &Tesseract{
+		Config:  c,
+		clients: make(map[string]rpc.Client),
+	}
 }
 
 var ErrFailedPullImage = errors.New("failed to pull image")
+var defaultPort = "50001"
 
 // Deploy create Docker Container with running ShimCode and copying SmartContract.
 func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
@@ -35,7 +45,12 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 		iCodeInfo.DockerImage.Tag = docker.DefaultImageTag
 	}
 
-	port := "50001"
+	var port string
+	var err error
+
+	if port, err = getAvailablePort(); err != nil {
+		return err
+	}
 
 	if err := pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
 		return ErrFailedPullImage
@@ -62,6 +77,28 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) error {
 	// Get Container handler
 
 	return nil
+}
+
+//1씩 증가 시키며 port를 확인한다
+func getAvailablePort() (string, error) {
+
+	for {
+		lis, err := net.Listen("tcp", defaultPort)
+
+		if err == nil {
+			lis.Close()
+			return defaultPort, nil
+		}
+
+		portNumber, err := strconv.Atoi(defaultPort)
+
+		if err != nil {
+			return "", err
+		}
+
+		portNumber++
+		defaultPort = strconv.Itoa(portNumber)
+	}
 }
 
 func pullImage(ImageFullName string) error {

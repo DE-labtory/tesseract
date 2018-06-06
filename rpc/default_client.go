@@ -18,7 +18,7 @@ type DefaultRpcClient struct {
 	cancel  context.CancelFunc
 }
 
-func NewDefaultRpcClient(address string) (*DefaultRpcClient, error) {
+func Connect(address string) (*DefaultRpcClient, error) {
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 
