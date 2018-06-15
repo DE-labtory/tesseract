@@ -27,3 +27,7 @@ func (s *DefaultRpcServer) RunICode(ctx context.Context, request *pb.Request) (*
 	res := s.Handler(&tx)
 	return &res, nil
 }
+
+func (s *DefaultRpcServer) Ping(ctx context.Context, empty *pb.Empty) (*pb.Empty, error) {
+	return &pb.Empty{}, nil
+}

@@ -1,14 +1,18 @@
 package tesseract
 
 import (
+	"context"
 	"net"
-	"time"
-
 	"strconv"
+	"time"
 
 	"log"
 
+	"encoding/json"
+
+	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/docker"
+	"github.com/it-chain/tesseract/pb"
 	"github.com/it-chain/tesseract/rpc"
 	"github.com/pkg/errors"
 )
@@ -82,9 +86,10 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 		return "", err
 	}
 
-	client, err := createClient(res.ID)
+	client, err := createClient()
 
 	if err != nil {
+		docker.CloseContainer(res.ID)
 		return "", err
 	}
 
@@ -93,23 +98,9 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 	return res.ID, nil
 }
 
-func createClient(containerID ContainerID) (rpc.Client, error) {
-
-	//todo need to remove
-	//todo client connect retry or ip check
-	//todo maybe need ping operation
-	time.Sleep(60 * time.Second)
-
-	client, err := rpc.Connect(ipAddress + ":" + defaultPort)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
 //1씩 증가 시키며 port를 확인한다
+//todo 이 함수 작동의미가 없음 tcp 50001과는 다름
+//todo docker daemon port check방법을 찾아야함 or docker network 구성
 func getAvailablePort() (string, error) {
 
 	for {
@@ -147,12 +138,77 @@ func pullImage(ImageFullName string) error {
 	return nil
 }
 
-func (t *Tesseract) QueryOrInvoke() {
+func createClient() (rpc.Client, error) {
+
+	//todo need to remove
+	//todo client connect retry or ip check
+	//todo maybe need ping operation
+	return retryConnectWithTimeOut(120 * time.Second)
+}
+
+func retryConnectWithTimeOut(timeout time.Duration) (*rpc.DefaultRpcClient, error) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	c := make(chan *rpc.DefaultRpcClient, 1)
+
+	go func() {
+
+		ticker := time.NewTicker(2 * time.Second)
+
+		for _ = range ticker.C {
+			client, err := rpc.Connect(ipAddress + ":" + defaultPort)
+
+			if err != nil {
+				continue
+			}
+
+			_, err = client.Ping()
+
+			if err == nil {
+				log.Println("successfully connected")
+				c <- client
+			}
+		}
+	}()
+
+	select {
+
+	case <-ctx.Done():
+		//timeoutted body
+		return nil, ctx.Err()
+
+	case client := <-c:
+		//okay body
+		return client, nil
+	}
+}
+
+func (t *Tesseract) QueryOrInvoke(containerID string, txInfo cell.TxInfo) (*pb.Response, error) {
 	// args : Transaction
 	// Get Container handler using SmartContract ID
 	// Send Query or Invoke massage
 	// Receive result
 	// Return result
+
+	tx, err := json.Marshal(txInfo)
+
+	if err != nil {
+		return nil, err
+	}
+
+	client := t.Clients[containerID]
+
+	res, err := client.RunICode(&pb.Request{
+		Tx: tx,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (t *Tesseract) StopContainer() {

@@ -169,12 +169,24 @@ func TestInvokeIncA(t *testing.T) {
 		ID:     "124",
 		Params: cell.Params{
 			Type:     1,
-			Function: "incA",
+			Function: "initA",
 			Args:     []string{""},
 		},
 	})
 
 	res, err := mc.RunICode(&pb.Request{Tx: tx})
+
+	tx, _ = json.Marshal(cell.TxInfo{
+		Method: "invoke",
+		ID:     "124",
+		Params: cell.Params{
+			Type:     1,
+			Function: "incA",
+			Args:     []string{""},
+		},
+	})
+
+	res, err = mc.RunICode(&pb.Request{Tx: tx})
 	assert.NoError(t, err)
 
 	fmt.Println(res)

@@ -2,13 +2,11 @@ package tesseract_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
+	"os"
 	"os/exec"
 	"testing"
-
-	"os"
-
-	"encoding/json"
 
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/cellcode/cell"
@@ -36,22 +34,26 @@ func TestSetupContainer(t *testing.T) {
 	}
 
 	var setup = func(config tesseract.Config) (*tesseract.Tesseract, func()) {
-		t := tesseract.New(config)
+		te := tesseract.New(config)
 
-		return t, func() {
-			t.StopContainer()
+		return te, func() {
+
+			t.Log("container is closing")
+			te.StopContainer()
 		}
 	}
 
-	tesseract, teardown := setup(tesseract.Config{ShPath: GOPATH + "/src/github.com/it-chain/tesseract/sh/default_setup.sh"})
-	defer teardown()
+	tesseract, tearDown := setup(tesseract.Config{ShPath: GOPATH + "/src/github.com/it-chain/tesseract/sh/default_setup.sh"})
+
+	defer tearDown()
 
 	for testName, test := range tests {
 		t.Logf("Running test case %s", testName)
 		id, err := tesseract.SetupContainer(test.input)
+		assert.Equal(t, err, test.err)
+
 		defer docker.CloseContainer(id)
 
-		assert.Equal(t, err, test.err)
 		for _, client := range tesseract.Clients {
 
 			tx, _ := json.Marshal(cell.TxInfo{
@@ -67,6 +69,7 @@ func TestSetupContainer(t *testing.T) {
 			_, err := client.RunICode(&pb.Request{Tx: tx})
 			assert.NoError(t, err)
 		}
+
 	}
 }
 

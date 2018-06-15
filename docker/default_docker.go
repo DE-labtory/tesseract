@@ -38,6 +38,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
+
 	if err != nil {
 		return res, err
 	}

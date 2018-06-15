@@ -25,6 +25,10 @@ func (s *MockServer) RunICode(ctx context.Context, request *pb.Request) (*pb.Res
 	return &pb.Response{Result: "result"}, nil
 }
 
+func (s *MockServer) Ping(ctx context.Context, request *pb.Empty) (*pb.Empty, error) {
+	return &pb.Empty{}, nil
+}
+
 func ListenMockServer(ms *MockServer, port string) (*grpc.Server, net.Listener) {
 
 	lis, err := net.Listen("tcp", port)
