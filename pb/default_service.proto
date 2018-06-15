@@ -3,6 +3,11 @@ package pb;
 
 service DefaultService {
     rpc RunICode (Request) returns (Response) {}
+    rpc Ping (Empty) returns (Empty) {}
+}
+
+message Empty {
+
 }
 
 message Request {
