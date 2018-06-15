@@ -18,7 +18,7 @@ type DefaultRpcClient struct {
 	cancel  context.CancelFunc
 }
 
-func NewDefaultRpcClient(address string) (*DefaultRpcClient, error) {
+func Connect(address string) (*DefaultRpcClient, error) {
 
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 
@@ -44,7 +44,12 @@ func (c *DefaultRpcClient) RunICode(request *pb.Request) (*pb.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return c.client.RunICode(c.ctx, &pb.Request{Tx: txBytes})
+}
+
+func (c *DefaultRpcClient) Ping() (*pb.Empty, error) {
+	return c.client.Ping(c.ctx, &pb.Empty{})
 }
 
 func (c *DefaultRpcClient) Close() {

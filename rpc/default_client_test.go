@@ -1,4 +1,4 @@
-package rpc
+package rpc_test
 
 import (
 	"context"
@@ -9,7 +9,8 @@ import (
 	"testing"
 
 	"github.com/it-chain/tesseract/pb"
-	"github.com/it-chain/yggdrasill/transaction"
+	"github.com/it-chain/tesseract/rpc"
+	"github.com/it-chain/yggdrasill/impl"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -21,7 +22,11 @@ type MockServer struct {
 }
 
 func (s *MockServer) RunICode(ctx context.Context, request *pb.Request) (*pb.Response, error) {
-	return &pb.Response{[]byte("result")}, nil
+	return &pb.Response{Result: "result"}, nil
+}
+
+func (s *MockServer) Ping(ctx context.Context, request *pb.Empty) (*pb.Empty, error) {
+	return &pb.Empty{}, nil
 }
 
 func ListenMockServer(ms *MockServer, port string) (*grpc.Server, net.Listener) {
@@ -48,7 +53,7 @@ func ListenMockServer(ms *MockServer, port string) (*grpc.Server, net.Listener) 
 /* Test
 --------------------*/
 func TestNewDefaultRpcClient(t *testing.T) {
-	cs, _ := NewDefaultRpcClient("127.0.0.1:50001")
+	cs, _ := rpc.Connect("127.0.0.1:50001")
 	fmt.Println(cs)
 }
 
@@ -63,18 +68,18 @@ func TestRunICode(t *testing.T) {
 		lis.Close()
 	}()
 
-	cs, err := NewDefaultRpcClient("127.0.0.1" + port)
+	cs, err := rpc.Connect("127.0.0.1" + port)
 
 	assert.NoError(t, err)
 
-	tx, err := json.Marshal(transaction.DefaultTransaction{ID: "123"})
+	tx, err := json.Marshal(impl.DefaultTransaction{ID: "123"})
 
 	res, err := cs.RunICode(&pb.Request{Tx: tx})
 
 	log.Println(res)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "test", string(res.Result))
+	assert.Equal(t, "result", string(res.Result))
 
 	log.Println("Success")
 }

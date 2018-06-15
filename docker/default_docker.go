@@ -16,15 +16,13 @@ import (
 const (
 	DefaultImageName = "golang"
 	DefaultImageTag  = "1.9"
-	GrpcGoImageName  = "grpc/go"
-	GrpcGoImageTag   = "1.0"
 )
 
 func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
-	image := dockerImage.getFullName()
+	image := dockerImage.GetFullName()
 
 	exist, err := HasImage(image)
 
@@ -40,6 +38,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
+
 	if err != nil {
 		return res, err
 	}
@@ -74,6 +73,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}, nil, "")
 
 	log.Printf(GOPATH + "/src:/go/src")
+
 	if err != nil {
 		return res, err
 	}
@@ -92,6 +92,20 @@ func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
 	}
 
 	return nil
+}
+
+func GetLocalIPAddressFromContainer(containerID string) (string, error) {
+	ctx := context.Background()
+	cli, err := docker.NewEnvClient()
+
+	inspectBody, err := cli.ContainerInspect(ctx, containerID)
+
+	if err != nil {
+		// An error occurred while starting the container!
+		return "", err
+	}
+
+	return inspectBody.NetworkSettings.IPAddress, nil
 }
 
 func PullImage(imageName string) error {
@@ -127,10 +141,29 @@ func HasImage(name string) (bool, error) {
 	}
 
 	for _, image := range imageList {
+
+		if len(image.RepoTags) == 0 {
+			continue
+		}
 		if name == image.RepoTags[0] {
 			return true, nil
 		}
 	}
 
 	return false, nil
+}
+
+func CloseContainer(id string) error {
+
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+
+	err := cli.ContainerKill(ctx, id, "9")
+	if err != nil {
+		return err
+	}
+
+	cli.ContainerRemove(ctx, id, types.ContainerRemoveOptions{})
+
+	return nil
 }

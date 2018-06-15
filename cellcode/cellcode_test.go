@@ -95,7 +95,7 @@ func SetupTest(t *testing.T, port string) func() {
 			t.Fatal("failed to kill process: ", err)
 		}
 
-		//os.RemoveAll("./wsdb")
+		os.RemoveAll("./wsdb")
 	}
 }
 
@@ -127,6 +127,19 @@ func TestQueryGetA(t *testing.T) {
 
 	mc, _ := NewMockClient("127.0.0.1:" + port)
 	tx, _ := json.Marshal(cell.TxInfo{
+		Method: "invoke",
+		ID:     "124",
+		Params: cell.Params{
+			Type:     1,
+			Function: "initA",
+			Args:     []string{""},
+		},
+	})
+
+	res, err := mc.RunICode(&pb.Request{Tx: tx})
+	assert.NoError(t, err)
+
+	tx, _ = json.Marshal(cell.TxInfo{
 		Method: "query",
 		ID:     "123",
 		Params: cell.Params{
@@ -136,7 +149,7 @@ func TestQueryGetA(t *testing.T) {
 		},
 	})
 
-	res, err := mc.RunICode(&pb.Request{Tx: tx})
+	res, err = mc.RunICode(&pb.Request{Tx: tx})
 	assert.NoError(t, err)
 
 	m := make(map[string]string)
@@ -156,12 +169,24 @@ func TestInvokeIncA(t *testing.T) {
 		ID:     "124",
 		Params: cell.Params{
 			Type:     1,
-			Function: "incA",
+			Function: "initA",
 			Args:     []string{""},
 		},
 	})
 
 	res, err := mc.RunICode(&pb.Request{Tx: tx})
+
+	tx, _ = json.Marshal(cell.TxInfo{
+		Method: "invoke",
+		ID:     "124",
+		Params: cell.Params{
+			Type:     1,
+			Function: "incA",
+			Args:     []string{""},
+		},
+	})
+
+	res, err = mc.RunICode(&pb.Request{Tx: tx})
 	assert.NoError(t, err)
 
 	fmt.Println(res)
