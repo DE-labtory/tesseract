@@ -183,8 +183,8 @@ func GetUsingPorts() ([]Port, error) {
 		for _, containerPort := range oneContainer.Ports {
 			portInfo := Port{
 				IP:          containerPort.IP,
-				PrivatePort: containerPort.PrivatePort,
-				PublicPort:  containerPort.PublicPort,
+				PrivatePort: int(containerPort.PrivatePort),
+				PublicPort:  int(containerPort.PublicPort),
 			}
 			portList = append(portList, portInfo)
 		}

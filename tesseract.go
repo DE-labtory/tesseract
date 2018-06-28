@@ -10,6 +10,8 @@ import (
 
 	"encoding/json"
 
+	"fmt"
+
 	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/pb"
@@ -113,6 +115,7 @@ findLoop:
 		}
 		for _, portInfo := range portList {
 			if portNumber == portInfo.PublicPort || portNumber == portInfo.PrivatePort {
+				fmt.Println("already using port! : ", string(portNumber))
 				portNumber++
 				defaultPort = strconv.Itoa(portNumber)
 				continue findLoop

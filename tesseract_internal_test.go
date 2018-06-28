@@ -32,10 +32,10 @@ func TestGetAvailablePort(t *testing.T) {
 	code3 := ICodeInfo{
 		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/icode/",
 	}
-	res1, err := tesseract.SetupContainer(code1)
+	_, err := tesseract.SetupContainer(code1)
 	assert.NoError(t, err)
-	res2, err := tesseract.SetupContainer(code2)
+	_, err = tesseract.SetupContainer(code2)
 	assert.NoError(t, err)
-	res3, err := tesseract.SetupContainer(code3)
+	_, err = tesseract.SetupContainer(code3)
 	assert.NoError(t, err)
 }
