@@ -167,3 +167,28 @@ func CloseContainer(id string) error {
 
 	return nil
 }
+
+// todo : create test case
+func GetUsingPorts() ([]Port, error) {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	portList := make([]Port, 0)
+	containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+
+	if err != nil {
+		return portList, err
+	}
+
+	for _, oneContainer := range containerList {
+		for _, containerPort := range oneContainer.Ports {
+			portInfo := Port{
+				IP:          containerPort.IP,
+				PrivatePort: containerPort.PrivatePort,
+				PublicPort:  containerPort.PublicPort,
+			}
+			portList = append(portList, portInfo)
+		}
+	}
+
+	return portList, nil
+}

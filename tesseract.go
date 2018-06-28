@@ -99,24 +99,31 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 }
 
 //1씩 증가 시키며 port를 확인한다
-//todo 이 함수 작동의미가 없음 tcp 50001과는 다름
-//todo docker daemon port check방법을 찾아야함 or docker network 구성
 func getAvailablePort() (string, error) {
+	portList, err := docker.GetUsingPorts()
+	if err != nil {
+		return "", err
+	}
 
+findLoop:
 	for {
-		lis, err := net.Listen("tcp", "127.0.0.1:"+defaultPort)
+		portNumber, err := strconv.Atoi(defaultPort)
+		if err != nil {
+			return "", err
+		}
+		for _, portInfo := range portList {
+			if portNumber == portInfo.PublicPort || portNumber == portInfo.PrivatePort {
+				portNumber++
+				defaultPort = strconv.Itoa(portNumber)
+				continue findLoop
+			}
+		}
 
+		lis, err := net.Listen("tcp", "127.0.0.1:"+defaultPort)
 		if err == nil {
 			lis.Close()
 			return defaultPort, nil
 		}
-
-		portNumber, err := strconv.Atoi(defaultPort)
-
-		if err != nil {
-			return "", err
-		}
-
 		portNumber++
 		defaultPort = strconv.Itoa(portNumber)
 	}
