@@ -64,11 +64,11 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 	if port, err = getAvailablePort(); err != nil {
 		return "", err
 	}
-
+	fmt.Printf("get available port : %s \n", port)
 	if err = pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
 		return "", ErrFailedPullImage
 	}
-
+	fmt.Printf("finish pull image \n")
 	// Create Docker
 	res, err := docker.CreateContainerWithCellCode(
 		docker.Image{Name: docker.DefaultImageName, Tag: docker.DefaultImageTag},
@@ -80,7 +80,7 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
+	fmt.Println("Container create finish")
 	// StartContainer
 	err = docker.StartContainer(res)
 

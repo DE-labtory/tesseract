@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"fmt"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
@@ -31,9 +33,11 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}
 
 	if !exist {
+		fmt.Println("Image not exit. try to pull")
 		if err := PullImage(image); err != nil {
 			return res, err
 		}
+		fmt.Println("finish to pull image")
 	}
 
 	ctx := context.Background()
@@ -42,7 +46,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	if err != nil {
 		return res, err
 	}
-
+	fmt.Println("docer env success")
 	portBindings := nat.PortMap{
 		nat.Port(port + "/tcp"): []nat.PortBinding{{
 			HostIP:   "0.0.0.0",
@@ -73,7 +77,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}, nil, "")
 
 	log.Printf(GOPATH + "/src:/go/src")
-
+	log.Println(res)
 	if err != nil {
 		return res, err
 	}

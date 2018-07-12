@@ -37,7 +37,6 @@ func TestSetupContainer(t *testing.T) {
 		te := tesseract.New(config)
 
 		return te, func() {
-
 			t.Log("container is closing")
 			te.StopContainer()
 		}
