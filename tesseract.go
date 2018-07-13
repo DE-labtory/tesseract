@@ -236,6 +236,7 @@ func (t *Tesseract) StopContainerById(id ContainerID) error {
 	if client == nil {
 		return errors.New(fmt.Sprintf("no container with id : %s", id))
 	}
+	client.Close()
 	delete(t.Clients, id)
 	return docker.CloseContainer(id)
 }
