@@ -13,6 +13,7 @@ import (
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"github.com/docker/go-connections/nat"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -24,6 +25,9 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
+	if GOPATH == "" {
+		return res, errors.New("invalid GOPATH. check your GOPATH")
+	}
 	image := dockerImage.GetFullName()
 
 	exist, err := HasImage(image)
