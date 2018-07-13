@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"encoding/json"
-
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
 )
@@ -40,12 +38,7 @@ func Connect(address string) (*DefaultRpcClient, error) {
 
 //todo test request -> request
 func (c *DefaultRpcClient) RunICode(request *pb.Request) (*pb.Response, error) {
-	txBytes, err := json.Marshal(request.Tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.client.RunICode(c.ctx, &pb.Request{Tx: txBytes})
+	return c.client.RunICode(c.ctx, request)
 }
 
 func (c *DefaultRpcClient) Ping() (*pb.Empty, error) {
