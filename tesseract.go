@@ -221,10 +221,21 @@ func (t *Tesseract) QueryOrInvoke(containerID string, txInfo cell.TxInfo) (*pb.R
 	return res, nil
 }
 
-func (t *Tesseract) StopContainer() {
+func (t *Tesseract) StopContainers() {
 
 	for name, client := range t.Clients {
 		log.Println("rpc client [%s] is closing", name)
 		client.Close()
+		delete(t.Clients, name)
+		docker.CloseContainer(name)
 	}
+}
+
+func (t *Tesseract) StopContainerById(id ContainerID) error {
+	client := t.Clients[id]
+	if client == nil {
+		return errors.New(fmt.Sprintf("no container with id : %s", id))
+	}
+	delete(t.Clients, id)
+	return docker.CloseContainer(id)
 }
