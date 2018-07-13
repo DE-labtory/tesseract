@@ -7,10 +7,13 @@ import (
 	"os"
 	"path/filepath"
 
+	"fmt"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"github.com/docker/go-connections/nat"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -22,6 +25,9 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
+	if GOPATH == "" {
+		return res, errors.New("invalid GOPATH. check your GOPATH")
+	}
 	image := dockerImage.GetFullName()
 
 	exist, err := HasImage(image)
@@ -31,9 +37,11 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}
 
 	if !exist {
+		fmt.Println("Image not exit. try to pull")
 		if err := PullImage(image); err != nil {
 			return res, err
 		}
+		fmt.Println("finish to pull image")
 	}
 
 	ctx := context.Background()
@@ -42,7 +50,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	if err != nil {
 		return res, err
 	}
-
+	fmt.Println("docer env success")
 	portBindings := nat.PortMap{
 		nat.Port(port + "/tcp"): []nat.PortBinding{{
 			HostIP:   "0.0.0.0",
@@ -73,7 +81,7 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	}, nil, "")
 
 	log.Printf(GOPATH + "/src:/go/src")
-
+	log.Println(res)
 	if err != nil {
 		return res, err
 	}
@@ -166,4 +174,29 @@ func CloseContainer(id string) error {
 	cli.ContainerRemove(ctx, id, types.ContainerRemoveOptions{})
 
 	return nil
+}
+
+// todo : create test case
+func GetUsingPorts() ([]Port, error) {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	portList := make([]Port, 0)
+	containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+
+	if err != nil {
+		return portList, err
+	}
+
+	for _, oneContainer := range containerList {
+		for _, containerPort := range oneContainer.Ports {
+			portInfo := Port{
+				IP:          containerPort.IP,
+				PrivatePort: int(containerPort.PrivatePort),
+				PublicPort:  int(containerPort.PublicPort),
+			}
+			portList = append(portList, portInfo)
+		}
+	}
+
+	return portList, nil
 }
