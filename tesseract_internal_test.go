@@ -17,7 +17,7 @@ func TestGetAvailablePort(t *testing.T) {
 		return te, func() {
 
 			t.Log("container is closing")
-			te.StopContainer()
+			te.StopContainers()
 		}
 	}
 
