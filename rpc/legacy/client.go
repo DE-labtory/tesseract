@@ -1,4 +1,4 @@
-package rpc
+package legacy
 
 import "github.com/it-chain/tesseract/pb"
 

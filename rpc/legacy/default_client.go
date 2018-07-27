@@ -1,4 +1,4 @@
-package rpc
+package legacy
 
 import (
 	"context"
