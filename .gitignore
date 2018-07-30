@@ -1,2 +1,11 @@
 #goland
 .idea
+
+#dep
+vendor
+
+#test
+cellcode/query
+
+#wsdb
+wsdb/

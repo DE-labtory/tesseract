@@ -1,5 +1,0 @@
-package shimcode
-
-func main() {
-
-}
