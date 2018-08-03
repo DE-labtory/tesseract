@@ -6,9 +6,10 @@ service BistreamService{
     rpc Ping (Empty) returns (Empty) {}
 }
 
-
 message Request {
-    bytes Tx = 1;
+    string Type = 1;
+    string FunctionName = 2;
+    repeated string Args = 3;
 }
 
 message Response {
