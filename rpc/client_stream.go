@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
 )
@@ -70,7 +71,7 @@ func (cs *ClientStream) StartHandle() {
 	}()
 }
 
-func (cs *ClientStream) RunICode(request *pb.Request, callBack func(response *pb.Response, err error)) error {
+func (cs *ClientStream) RunICode(request *pb.Request, callBack tesseract.CallBack) error {
 	cs.Handler.AddCallback(request.Uuid, callBack)
 	return cs.clientStream.Send(request)
 }
@@ -84,12 +85,12 @@ func (c *ClientStream) Close() {
 }
 
 type DefaultHandler struct {
-	callBacks map[string]func(response *pb.Response, err error)
+	callBacks map[string]tesseract.CallBack
 }
 
 func NewDefaultHandler() *DefaultHandler {
 	return &DefaultHandler{
-		callBacks: make(map[string]func(response *pb.Response, err error)),
+		callBacks: make(map[string]tesseract.CallBack),
 	}
 }
 
@@ -102,6 +103,6 @@ func (d *DefaultHandler) Handle(response *pb.Response, err error) {
 	delete(d.callBacks, response.Uuid)
 }
 
-func (d *DefaultHandler) AddCallback(uuid string, callback func(response *pb.Response, err error)) {
+func (d *DefaultHandler) AddCallback(uuid string, callback tesseract.CallBack) {
 	d.callBacks[uuid] = callback
 }

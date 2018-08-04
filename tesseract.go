@@ -17,16 +17,17 @@ import (
 )
 
 type ContainerID = string
+type CallBack func(response *pb.Response, err error)
 
 type Tesseract struct {
 	Clients map[ContainerID]*rpc.ClientStream
 }
 
 type Request struct {
-	uuid     string
-	typeName string
-	funcName string
-	args     []string
+	Uuid     string
+	TypeName string
+	FuncName string
+	Args     []string
 }
 
 type ICodeInfo struct {
@@ -190,8 +191,8 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 	}
 }
 
-func (t *Tesseract) Request(containerID string, req Request, callBack func(response *pb.Response, err error)) error {
-	// args : Transaction
+func (t *Tesseract) Request(containerID string, req Request, callback CallBack) error {
+	// Args : Transaction
 	// Get Container handler using SmartContract ID
 	// Send Query or Invoke massage
 	// Receive result
@@ -199,11 +200,11 @@ func (t *Tesseract) Request(containerID string, req Request, callBack func(respo
 
 	client := t.Clients[containerID]
 	err := client.RunICode(&pb.Request{
-		Uuid:         req.uuid,
-		Type:         req.typeName,
-		FunctionName: req.funcName,
-		Args:         req.args,
-	}, callBack)
+		Uuid:         req.Uuid,
+		Type:         req.TypeName,
+		FunctionName: req.FuncName,
+		Args:         req.Args,
+	}, callback)
 
 	if err != nil {
 		return err
