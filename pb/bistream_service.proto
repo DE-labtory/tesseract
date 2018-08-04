@@ -1,0 +1,26 @@
+syntax = "proto3";
+package pb;
+
+service BistreamService{
+    rpc RunICode (stream Request) returns (stream Response){}
+    rpc Ping (Empty) returns (Empty) {}
+}
+
+message Request {
+    string uuid = 1;
+    string Type = 2;
+    string FunctionName = 3;
+    repeated string Args = 4;
+}
+
+message Response {
+    string uuid = 1;
+    string Type = 2;
+    bool Result = 3;
+    bytes Data = 4;
+    string Error = 5;
+}
+
+message Empty {
+
+}

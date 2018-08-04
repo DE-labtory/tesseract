@@ -2,18 +2,15 @@ package docker
 
 import (
 	"context"
-	"io"
-	"log"
-	"os"
-	"path/filepath"
-
+	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"github.com/docker/go-connections/nat"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -21,7 +18,7 @@ const (
 	DefaultImageTag  = "1.9"
 )
 
-func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(dockerImage Image, dir string, port string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
@@ -61,9 +58,10 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: image,
 		Cmd: []string{
-			"sh",
-			"/sh/" + filepath.Base(shPath),
-			port,
+			"go",
+			"run",
+			"/icode/" + "icode.go",
+			"-p" + port,
 		},
 		Tty:          true,
 		AttachStdout: true,
@@ -76,12 +74,9 @@ func CreateContainerWithCellCode(dockerImage Image, dir string, shPath string, p
 		PortBindings: portBindings,
 		Binds: []string{
 			GOPATH + "/src:/go/src",
-			dir + ":/icode",
-			filepath.Dir(shPath) + ":/sh"},
+			dir + ":/icode"},
 	}, nil, "")
 
-	log.Printf(GOPATH + "/src:/go/src")
-	log.Println(res)
 	if err != nil {
 		return res, err
 	}

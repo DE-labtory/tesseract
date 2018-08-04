@@ -1,2 +1,0 @@
-go build -buildmode=plugin -o  $GOPATH/src/github.com/it-chain/tesseract/cellcode/mock/icode.so $GOPATH/src/github.com/it-chain/tesseract/cellcode/icode/icode.go
-go run $GOPATH/src/github.com/it-chain/tesseract/cellcode/cellcode.go $GOPATH/src/github.com/it-chain/tesseract/cellcode/mock/icode.so $1

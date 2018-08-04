@@ -2,14 +2,15 @@ package tesseract_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"os"
 	"os/exec"
 	"testing"
 
+	"fmt"
+	"time"
+
 	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/pb"
 	"github.com/stretchr/testify/assert"
@@ -26,15 +27,15 @@ func TestSetupContainer(t *testing.T) {
 	}{
 		"success": {
 			input: tesseract.ICodeInfo{
-				Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/icode/",
+				Directory: GOPATH + "/src/github.com/it-chain/tesseract/docker/mock",
 			},
 			output: "123",
 			err:    nil,
 		},
 	}
 
-	var setup = func(config tesseract.Config) (*tesseract.Tesseract, func()) {
-		te := tesseract.New(config)
+	var setup = func() (*tesseract.Tesseract, func()) {
+		te := tesseract.New()
 
 		return te, func() {
 			t.Log("container is closing")
@@ -42,7 +43,7 @@ func TestSetupContainer(t *testing.T) {
 		}
 	}
 
-	tesseract, tearDown := setup(tesseract.Config{ShPath: GOPATH + "/src/github.com/it-chain/tesseract/sh/default_setup.sh"})
+	tesseract, tearDown := setup()
 
 	defer tearDown()
 
@@ -52,20 +53,54 @@ func TestSetupContainer(t *testing.T) {
 		assert.Equal(t, err, test.err)
 
 		defer docker.CloseContainer(id)
-
 		for _, client := range tesseract.Clients {
-
-			tx, _ := json.Marshal(cell.TxInfo{
-				Method: "invoke",
-				ID:     "124",
-				Params: cell.Params{
-					Type:     1,
-					Function: "initA",
-					Args:     []string{""},
-				},
+			err := client.RunICode(&pb.Request{
+				Uuid:         "1",
+				Type:         "invoke",
+				FunctionName: "initA",
+				Args:         nil,
+			}, func(response *pb.Response, err error) {
+				if err != nil {
+					fmt.Println("err in init A")
+				}
+				fmt.Println("res initA!")
 			})
-
-			_, err := client.RunICode(&pb.Request{Tx: tx})
+			err = client.RunICode(&pb.Request{
+				Uuid:         "2",
+				Type:         "invoke",
+				FunctionName: "incA",
+				Args:         nil,
+			}, func(response *pb.Response, err error) {
+				if err != nil {
+					fmt.Println("err in inc A")
+				}
+				fmt.Println("res incA!")
+			})
+			err = client.RunICode(&pb.Request{
+				Uuid:         "3",
+				Type:         "invoke",
+				FunctionName: "incA",
+				Args:         nil,
+			}, func(response *pb.Response, err error) {
+				if err != nil {
+					fmt.Println("err in inc A")
+				}
+				fmt.Println("res incA!")
+			})
+			fmt.Println("wait for 2 min")
+			time.Sleep(120 * time.Second)
+			err = client.RunICode(&pb.Request{
+				Uuid:         "4",
+				Type:         "query",
+				FunctionName: "getA",
+				Args:         nil,
+			}, func(response *pb.Response, err error) {
+				if err != nil {
+					fmt.Println("err in get A")
+				}
+				fmt.Println("res getA! : ", string(response.Data))
+			})
+			time.Sleep(2 * time.Second)
 			assert.NoError(t, err)
 		}
 
