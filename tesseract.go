@@ -2,32 +2,31 @@ package tesseract
 
 import (
 	"context"
+	"errors"
 	"net"
 	"strconv"
 	"time"
 
 	"log"
 
-	"encoding/json"
-
 	"fmt"
 
-	"github.com/it-chain/tesseract/cellcode/cell"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/pb"
 	"github.com/it-chain/tesseract/rpc"
-	"github.com/pkg/errors"
 )
 
 type ContainerID = string
 
 type Tesseract struct {
-	Config  Config
-	Clients map[ContainerID]rpc.Client
+	Clients map[ContainerID]*rpc.ClientStream
 }
 
-type Config struct {
-	ShPath string
+type Request struct {
+	uuid     string
+	typeName string
+	funcName string
+	args     []string
 }
 
 type ICodeInfo struct {
@@ -37,10 +36,9 @@ type ICodeInfo struct {
 	language    string // ENUM 으로 대체하면 좋음
 }
 
-func New(c Config) *Tesseract {
+func New() *Tesseract {
 	return &Tesseract{
-		Config:  c,
-		Clients: make(map[string]rpc.Client),
+		Clients: make(map[string]*rpc.ClientStream),
 	}
 }
 
@@ -64,16 +62,13 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 	if port, err = getAvailablePort(); err != nil {
 		return "", err
 	}
-	fmt.Printf("get available port : %s \n", port)
 	if err = pullImage(iCodeInfo.DockerImage.GetFullName()); err != nil {
 		return "", ErrFailedPullImage
 	}
-	fmt.Printf("finish pull image \n")
 	// Create Docker
-	res, err := docker.CreateContainerWithCellCode(
+	res, err := docker.CreateContainer(
 		docker.Image{Name: docker.DefaultImageName, Tag: docker.DefaultImageTag},
 		iCodeInfo.Directory,
-		t.Config.ShPath,
 		port,
 	)
 
@@ -89,7 +84,6 @@ func (t *Tesseract) SetupContainer(iCodeInfo ICodeInfo) (string, error) {
 	}
 
 	client, err := createClient()
-
 	if err != nil {
 		docker.CloseContainer(res.ID)
 		return "", err
@@ -148,7 +142,7 @@ func pullImage(ImageFullName string) error {
 	return nil
 }
 
-func createClient() (rpc.Client, error) {
+func createClient() (*rpc.ClientStream, error) {
 
 	//todo need to remove
 	//todo client connect retry or ip check
@@ -156,29 +150,30 @@ func createClient() (rpc.Client, error) {
 	return retryConnectWithTimeOut(120 * time.Second)
 }
 
-func retryConnectWithTimeOut(timeout time.Duration) (*rpc.DefaultRpcClient, error) {
+func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
-	c := make(chan *rpc.DefaultRpcClient, 1)
-
+	c := make(chan *rpc.ClientStream, 1)
 	go func() {
 
 		ticker := time.NewTicker(2 * time.Second)
 
 		for _ = range ticker.C {
-			client, err := rpc.Connect(ipAddress + ":" + defaultPort)
+			client, err := rpc.NewClientStream(ipAddress + ":" + defaultPort)
 
 			if err != nil {
 				continue
 			}
 
 			_, err = client.Ping()
-
 			if err == nil {
 				log.Println("successfully connected")
+				client.SetHandler(rpc.NewDefaultHandler())
+				client.StartHandle()
 				c <- client
+				return
 			}
 		}
 	}()
@@ -195,30 +190,26 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.DefaultRpcClient, erro
 	}
 }
 
-func (t *Tesseract) QueryOrInvoke(containerID string, txInfo cell.TxInfo) (*pb.Response, error) {
+func (t *Tesseract) Request(containerID string, req Request, callBack func(response *pb.Response, err error)) error {
 	// args : Transaction
 	// Get Container handler using SmartContract ID
 	// Send Query or Invoke massage
 	// Receive result
 	// Return result
 
-	tx, err := json.Marshal(txInfo)
-
-	if err != nil {
-		return nil, err
-	}
-
 	client := t.Clients[containerID]
-
-	res, err := client.RunICode(&pb.Request{
-		Tx: tx,
-	})
+	err := client.RunICode(&pb.Request{
+		Uuid:         req.uuid,
+		Type:         req.typeName,
+		FunctionName: req.funcName,
+		Args:         req.args,
+	}, callBack)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return res, nil
+	return nil
 }
 
 func (t *Tesseract) StopContainers() {

@@ -11,8 +11,8 @@ import (
 
 func TestGetAvailablePort(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
-	var setup = func(config Config) (*Tesseract, func()) {
-		te := New(config)
+	var setup = func() (*Tesseract, func()) {
+		te := New()
 
 		return te, func() {
 
@@ -21,17 +21,17 @@ func TestGetAvailablePort(t *testing.T) {
 		}
 	}
 
-	tesseract, tearDown := setup(Config{ShPath: GOPATH + "/src/github.com/it-chain/tesseract/sh/default_setup.sh"})
+	tesseract, tearDown := setup()
 
 	defer tearDown()
 	code1 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/icode/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
 	}
 	code2 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/icode/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
 	}
 	code3 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/icode/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
 	}
 	fmt.Println("code 1 test")
 	_, err := tesseract.SetupContainer(code1)
