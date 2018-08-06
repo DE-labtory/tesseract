@@ -2,11 +2,10 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"io"
-	"log"
 	"time"
 
+	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
 )
@@ -39,8 +38,8 @@ func NewClientStream(address string) (*ClientStream, error) {
 	clientStream, err := client.RunICode(ctx)
 
 	if err != nil {
-		conn.Close()
-		cf()
+		//conn.Close()
+		//cf()
 		return nil, err
 	}
 
@@ -62,11 +61,11 @@ func (cs *ClientStream) StartHandle() {
 		for {
 			res, err := cs.clientStream.Recv()
 			if err == io.EOF || res == nil {
-				fmt.Println("io.EOF handle finish.")
+				logger.Info(nil, "[Tesseract] client stream finish")
 				return
 			}
 			if cs.Handler == nil {
-				log.Fatal("error in start handle. there is no handle")
+				logger.Fatal(nil, "[Tesseract] error in start handle. there is no handle")
 				return
 			}
 			cs.Handler.Handle(res, err)
@@ -107,9 +106,11 @@ func NewDefaultHandler() *DefaultHandler {
 
 func (d *DefaultHandler) Handle(response *pb.Response, err error) {
 	callbackFunc := d.callBacks[response.Uuid]
+
 	if callbackFunc == nil {
-		log.Panic("error in handle uuid : ", response.Uuid)
+		logger.Panicf(nil, "[Tesseract] error in handle uuid : ", response.Uuid)
 	}
+
 	callbackFunc(response, err)
 	delete(d.callBacks, response.Uuid)
 }

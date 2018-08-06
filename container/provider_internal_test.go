@@ -20,14 +20,12 @@ import (
 	"os"
 	"testing"
 
-	"fmt"
-
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/container"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAvailablePort(t *testing.T) {
+func Test_GetAvailablePort(t *testing.T) {
 
 	GOPATH := os.Getenv("GOPATH")
 
@@ -45,8 +43,6 @@ func TestGetAvailablePort(t *testing.T) {
 	defer dc.Close()
 	assert.NoError(t, err)
 	assert.Equal(t, dc.Port, "50001")
-
-	fmt.Println("1")
 
 	dc, err = container.Create(conf2)
 	defer dc.Close()

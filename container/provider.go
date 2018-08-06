@@ -23,10 +23,9 @@ import (
 	"strconv"
 	"time"
 
-	"fmt"
-
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
+	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/rpc"
 )
 
@@ -36,6 +35,7 @@ var ipAddress = "127.0.0.1"
 
 func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
+	logger.Info(nil, "[Tesseract] creating container")
 	containerImage := tesseract.GetDefaultImage()
 
 	var port string
@@ -63,6 +63,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	err = docker.StartContainer(res)
 
 	if err != nil {
+		logger.Errorf(nil, "[Tesseract] fail to create container: %s", err.Error())
 		docker.RemoveContainer(res.ID)
 		return DockerContainer{}, err
 	}
@@ -70,6 +71,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	client, err := createClient()
 
 	if err != nil {
+		logger.Errorf(nil, "[Tesseract] closing container %d", res.ID)
 		docker.KillContainer(res.ID)
 		docker.RemoveContainer(res.ID)
 		return DockerContainer{}, err
@@ -137,6 +139,7 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 	defer cancel()
 
 	c := make(chan *rpc.ClientStream, 1)
+
 	go func() {
 
 		ticker := time.NewTicker(2 * time.Second)
@@ -145,13 +148,10 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 			client, err := rpc.NewClientStream(ipAddress + ":" + defaultPort)
 
 			if err != nil {
-				fmt.Println(err.Error())
 				continue
 			}
 
 			_, err = client.Ping()
-
-			fmt.Println("ping..")
 
 			if err == nil {
 				client.SetHandler(rpc.NewDefaultHandler())

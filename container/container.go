@@ -64,6 +64,7 @@ func (d DockerContainer) Request(req tesseract.Request, callback tesseract.CallB
 func (d DockerContainer) Close() error {
 
 	d.Client.Close()
+
 	if err := docker.KillContainer(d.ID); err != nil {
 		return err
 	}
