@@ -5,12 +5,11 @@ import (
 	"io"
 	"time"
 
+	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/pb"
 	"google.golang.org/grpc"
 )
-
-type CallBack func(response *pb.Response, err error)
 
 const (
 	defaultDialTimeout = 3 * time.Second
@@ -73,7 +72,7 @@ func (cs *ClientStream) StartHandle() {
 	}()
 }
 
-func (cs *ClientStream) RunICode(request *pb.Request, callBack CallBack) error {
+func (cs *ClientStream) RunICode(request *pb.Request, callBack tesseract.CallBack) error {
 	cs.Handler.AddCallback(request.Uuid, callBack)
 	return cs.clientStream.Send(request)
 }
@@ -94,13 +93,13 @@ func (c *ClientStream) Close() {
 }
 
 type DefaultHandler struct {
-	callBacks map[string]CallBack
+	callBacks map[string]tesseract.CallBack
 }
 
 func NewDefaultHandler() *DefaultHandler {
 
 	return &DefaultHandler{
-		callBacks: make(map[string]CallBack),
+		callBacks: make(map[string]tesseract.CallBack),
 	}
 }
 
@@ -115,6 +114,6 @@ func (d *DefaultHandler) Handle(response *pb.Response, err error) {
 	delete(d.callBacks, response.Uuid)
 }
 
-func (d *DefaultHandler) AddCallback(uuid string, callback CallBack) {
+func (d *DefaultHandler) AddCallback(uuid string, callback tesseract.CallBack) {
 	d.callBacks[uuid] = callback
 }
