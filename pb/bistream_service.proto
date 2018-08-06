@@ -16,9 +16,8 @@ message Request {
 message Response {
     string uuid = 1;
     string Type = 2;
-    bool Result = 3;
-    bytes Data = 4;
-    string Error = 5;
+    bytes Data = 3;
+    string Error = 4;
 }
 
 message Empty {
