@@ -18,9 +18,8 @@
 package main
 
 import (
-	"os"
-
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/it-chain/sdk"
@@ -34,16 +33,25 @@ var opts struct {
 }
 
 func main() {
+
 	logger.EnableFileLogger(true, "./icode.log")
 	parser := flags.NewParser(&opts, flags.Default)
+
 	_, err := parser.Parse()
+
 	if err != nil {
 		logger.Error(nil, "fail parse args: "+err.Error())
 		os.Exit(1)
 	}
+
 	fmt.Println("port : " + strconv.Itoa(opts.Port))
+
 	exHandler := &handler.HandlerExample{}
 	ibox := sdk.NewIBox(opts.Port)
 	ibox.SetHandler(exHandler)
-	ibox.On(30)
+	err = ibox.On(30)
+
+	if err != nil {
+		panic(err.Error())
+	}
 }
