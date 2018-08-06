@@ -17,10 +17,8 @@
 package main
 
 import (
-	"os"
-
 	"log"
-
+	"os"
 	"sync"
 
 	"github.com/it-chain/tesseract"

@@ -74,3 +74,7 @@ func (d DockerContainer) Close() error {
 
 	return nil
 }
+
+func (d DockerContainer) GetID() string {
+	return d.ID
+}

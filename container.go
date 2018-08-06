@@ -60,6 +60,9 @@ type Container interface {
 
 	// close container
 	Close() error
+
+	// get container ID
+	GetID() string
 }
 
 type Request struct {
