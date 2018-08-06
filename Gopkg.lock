@@ -112,6 +112,12 @@
   version = "v1.4.0"
 
 [[projects]]
+  name = "github.com/magiconair/properties"
+  packages = ["assert"]
+  revision = "c2353362d570a7bfa228149c62842019201cfb71"
+  version = "v1.8.0"
+
+[[projects]]
   name = "github.com/opencontainers/go-digest"
   packages = ["."]
   revision = "279bed98673dd5bef374d3b6e4b09e2af76183bf"
@@ -262,6 +268,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c2e0caee91209a1c79a2fc81479f406220a2551e6ae6088489a368200d43a34e"
+  inputs-digest = "fd8c8eb855186aaba7faf1e5ddba3e83e2bff447c9988589780b9136452411b3"
   solver-name = "gps-cdcl"
   solver-version = 1
