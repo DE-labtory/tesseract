@@ -25,13 +25,13 @@ func TestGetAvailablePort(t *testing.T) {
 
 	defer tearDown()
 	code1 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/docker/mock",
 	}
 	code2 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/docker/mock",
 	}
 	code3 := ICodeInfo{
-		Directory: GOPATH + "/src/github.com/it-chain/tesseract/cellcode/mock/",
+		Directory: GOPATH + "/src/github.com/it-chain/tesseract/docker/mock",
 	}
 	fmt.Println("code 1 test")
 	_, err := tesseract.SetupContainer(code1)

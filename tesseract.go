@@ -17,7 +17,6 @@ import (
 )
 
 type ContainerID = string
-type CallBack func(response *pb.Response, err error)
 
 type Tesseract struct {
 	Clients map[ContainerID]*rpc.ClientStream
@@ -191,7 +190,7 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 	}
 }
 
-func (t *Tesseract) Request(containerID string, req Request, callback CallBack) error {
+func (t *Tesseract) Request(containerID string, req Request, callback rpc.CallBack) error {
 	// Args : Transaction
 	// Get Container handler using SmartContract ID
 	// Send Query or Invoke massage
