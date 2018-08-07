@@ -1,3 +1,5 @@
+// +build ignore
+
 /*
  * Copyright 2018 It-chain
  *
@@ -23,9 +25,9 @@ import (
 	"strconv"
 
 	"github.com/it-chain/sdk"
-	"github.com/it-chain/sdk/example/handler"
 	"github.com/it-chain/sdk/logger"
 	"github.com/jessevdk/go-flags"
+	"github.com/mock/handler"
 )
 
 var opts struct {
@@ -34,7 +36,7 @@ var opts struct {
 
 func main() {
 
-	logger.EnableFileLogger(true, "./icode.log")
+	logger.EnableFileLogger(true, "./log/icode.log")
 	parser := flags.NewParser(&opts, flags.Default)
 
 	_, err := parser.Parse()

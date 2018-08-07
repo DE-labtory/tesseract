@@ -41,7 +41,7 @@ func (*HandlerExample) Versions() []string {
 	return vers
 }
 
-func (*HandlerExample) Handle(request *pb.Request, cell *sdk.Cell) (*pb.Response, error) {
+func (*HandlerExample) Handle(request *pb.Request, cell *sdk.Cell) *pb.Response {
 	switch request.Type {
 	case "invoke":
 		return handleInvoke(request, cell)
@@ -51,99 +51,97 @@ func (*HandlerExample) Handle(request *pb.Request, cell *sdk.Cell) (*pb.Response
 		fmt.Println("req : " + request.Uuid)
 		if request.Uuid == "0" {
 			cell.PutData("test", []byte("0"))
-			return responseSuccess(request, []byte(string(0))), nil
+			return responseSuccess(request, []byte(string(0)))
 		}
 		data, err := cell.GetData("test")
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		if len(data) == 0 {
 			err := errors.New("no data err")
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		strData := string(data)
 		intData, err := strconv.Atoi(strData)
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		intData = intData + 1
 		changeData := strconv.Itoa(intData)
 		err = cell.PutData("test", []byte(changeData))
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
-		return responseSuccess(request, []byte(changeData)), nil
+		return responseSuccess(request, []byte(changeData))
 	default:
-		logger.Fatal(nil, "unknown request type")
+		logger.Debug(nil, "unknown request type")
 		err := errors.New("unknown request type")
-		return responseError(request, err), err
+		return responseError(request, err)
 	}
 }
-func handleQuery(request *pb.Request, cell *sdk.Cell) (*pb.Response, error) {
+func handleQuery(request *pb.Request, cell *sdk.Cell) *pb.Response {
 	switch request.FunctionName {
 	case "getA":
 		b, err := cell.GetData("A")
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
-		return responseSuccess(request, b), nil
+		return responseSuccess(request, b)
 
 	default:
 		err := errors.New("unknown query method")
-		return responseError(request, err), err
+		return responseError(request, err)
 	}
 }
-func handleInvoke(request *pb.Request, cell *sdk.Cell) (*pb.Response, error) {
+func handleInvoke(request *pb.Request, cell *sdk.Cell) *pb.Response {
 	switch request.FunctionName {
 	case "initA":
 		err := cell.PutData("A", []byte("0"))
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
-		return responseSuccess(request, nil), nil
+		return responseSuccess(request, nil)
 	case "incA":
 		data, err := cell.GetData("A")
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		if len(data) == 0 {
 			err := errors.New("no data err")
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		strData := string(data)
 		intData, err := strconv.Atoi(strData)
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
 		intData++
 		changeData := strconv.Itoa(intData)
 		err = cell.PutData("A", []byte(changeData))
 		if err != nil {
-			return responseError(request, err), err
+			return responseError(request, err)
 		}
-		return responseSuccess(request, nil), nil
+		return responseSuccess(request, nil)
 	default:
 		err := errors.New("unknown invoke method")
-		return responseError(request, err), err
+		return responseError(request, err)
 	}
 }
 
 func responseError(request *pb.Request, err error) *pb.Response {
 	return &pb.Response{
-		Uuid:   request.Uuid,
-		Type:   request.Type,
-		Result: false,
-		Data:   nil,
-		Error:  err.Error(),
+		Uuid:  request.Uuid,
+		Type:  request.Type,
+		Data:  nil,
+		Error: err.Error(),
 	}
 }
 
 func responseSuccess(request *pb.Request, data []byte) *pb.Response {
 	return &pb.Response{
-		Uuid:   request.Uuid,
-		Type:   request.Type,
-		Result: true,
-		Data:   data,
-		Error:  "",
+		Uuid:  request.Uuid,
+		Type:  request.Type,
+		Data:  data,
+		Error: "",
 	}
 }

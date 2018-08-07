@@ -30,6 +30,7 @@ func main() {
 
 	config := tesseract.ContainerConfig{
 		Directory: os.Getenv("GOPATH") + "/src/github.com/it-chain/tesseract/mock",
+		Url:       "github.com/mock",
 	}
 
 	c, err := container.Create(config)

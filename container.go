@@ -27,6 +27,7 @@ type ContainerFactory interface {
 
 type ContainerConfig struct {
 	Name           string
+	Url            string
 	Directory      string
 	ContainerImage ContainerImage
 	language       string // ENUM 으로 대체하면 좋음
