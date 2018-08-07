@@ -13,7 +13,7 @@ import (
 	"github.com/it-chain/tesseract"
 )
 
-func CreateContainer(containerImage tesseract.ContainerImage, dir string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
@@ -45,7 +45,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, dir string, port s
 		Cmd: []string{
 			"go",
 			"run",
-			"/icode/" + "icode.go",
+			"/go/src/" + destPath + "/icode.go",
 			"-p" + port,
 		},
 		Tty:          true,
@@ -58,8 +58,8 @@ func CreateContainer(containerImage tesseract.ContainerImage, dir string, port s
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBindings,
 		Binds: []string{
-			GOPATH + "/src:/go/src",
-			dir + ":/icode"},
+			srcPath + ":/go/src/" + destPath,
+		},
 	}, nil, "")
 
 	if err != nil {

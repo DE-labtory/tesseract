@@ -53,6 +53,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	res, err := docker.CreateContainer(
 		containerImage,
 		config.Directory,
+		config.Url,
 		port,
 	)
 

@@ -17,7 +17,8 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	res, err := docker.CreateContainer(
 		tesseract.GetDefaultImage(),
-		GOPATH+"/src/github.com/it-chain/tesseract/container/mock",
+		GOPATH+"/src/github.com/it-chain/tesseract/mock",
+		"github.com/mock",
 		"50005",
 	)
 	defer func() {
@@ -37,7 +38,8 @@ func TestStartContainer(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	res, err := docker.CreateContainer(
 		tesseract.GetDefaultImage(),
-		GOPATH+"/src/github.com/it-chain/tesseract/container/mock",
+		GOPATH+"/src/github.com/it-chain/tesseract/mock",
+		"github.com/mock",
 		"50005",
 	)
 
