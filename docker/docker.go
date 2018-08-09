@@ -11,9 +11,12 @@ import (
 	"docker.io/go-docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
+	"docker.io/go-docker/api/types/mount"
+	"path"
+	"fmt"
 )
 
-func CreateContainer(containerImage tesseract.ContainerImage, dir string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(containerImage tesseract.ContainerImage, dir, port, logFileName string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
@@ -43,10 +46,9 @@ func CreateContainer(containerImage tesseract.ContainerImage, dir string, port s
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Cmd: []string{
-			"go",
-			"run",
-			"/icode/" + "icode.go",
-			"-p" + port,
+			"bash",
+			"-c",
+			getCommand(port, logFileName),
 		},
 		Tty:          true,
 		AttachStdout: true,
@@ -59,7 +61,16 @@ func CreateContainer(containerImage tesseract.ContainerImage, dir string, port s
 		PortBindings: portBindings,
 		Binds: []string{
 			GOPATH + "/src:/go/src",
-			dir + ":/icode"},
+			dir + ":/icode",
+		},
+		Mounts: []mount.Mount{
+			{
+				ReadOnly:false,
+				Type: mount.TypeBind,
+				Source: path.Join(dir, "logs"),
+				Target: "/logs",
+			},
+		},
 	}, nil, "")
 
 	if err != nil {
@@ -191,4 +202,8 @@ func GetPorts() ([]types.Port, error) {
 	}
 
 	return portList, nil
+}
+
+func getCommand(port, logFileName string) string {
+	return fmt.Sprintf("go run /icode/icode.go -p%s 2>&1 | tee /logs/%s", port, logFileName)
 }

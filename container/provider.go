@@ -49,11 +49,16 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, ErrFailedPullImage
 	}
 
+	if config.LogFileName == "" {
+		config.LogFileName = tesseract.DefaultLogFileName
+	}
+
 	// Create Docker
 	res, err := docker.CreateContainer(
 		containerImage,
 		config.Directory,
 		port,
+		normalizeLogFileName(config.LogFileName),
 	)
 
 	if err != nil {
@@ -172,4 +177,11 @@ func retryConnectWithTimeOut(timeout time.Duration) (*rpc.ClientStream, error) {
 		//okay body
 		return client, nil
 	}
+}
+
+func normalizeLogFileName(name string) string {
+	if name == "" {
+		return tesseract.DefaultLogFileName
+	}
+	return name
 }

@@ -19,6 +19,7 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 		tesseract.GetDefaultImage(),
 		GOPATH+"/src/github.com/it-chain/tesseract/container/mock",
 		"50005",
+		tesseract.DefaultLogFileName,
 	)
 	defer func() {
 		// Remove Docker Container
@@ -39,6 +40,7 @@ func TestStartContainer(t *testing.T) {
 		tesseract.GetDefaultImage(),
 		GOPATH+"/src/github.com/it-chain/tesseract/container/mock",
 		"50005",
+		tesseract.DefaultLogFileName,
 	)
 
 	err = docker.StartContainer(res)

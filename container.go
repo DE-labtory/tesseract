@@ -29,12 +29,14 @@ type ContainerConfig struct {
 	Name           string
 	Directory      string
 	ContainerImage ContainerImage
+	LogFileName string
 	language       string // ENUM 으로 대체하면 좋음
 }
 
 const (
 	DefaultImageName = "golang"
 	DefaultImageTag  = "1.9"
+	DefaultLogFileName = "icode.log"
 )
 
 type ContainerImage struct {

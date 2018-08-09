@@ -9,3 +9,6 @@ cellcode/query
 
 #wsdb
 wsdb/
+
+#log
+*.log
