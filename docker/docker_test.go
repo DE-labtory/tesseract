@@ -12,27 +12,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type CleanFunc = func() error
+
+func setup(t *testing.T, callback CleanFunc) CleanFunc {
+	err := removeAllContainers()
+	assert.NoError(t, err)
+
+	return callback
+}
+
 func TestCreateContainerWithCellCode(t *testing.T) {
+	defer setup(t, removeAllContainers)()
 
 	GOPATH := os.Getenv("GOPATH")
+	// when
 	res, err := docker.CreateContainer(
 		tesseract.GetDefaultImage(),
 		GOPATH+"/src/github.com/it-chain/tesseract/mock",
 		"github.com/mock",
 		"50005",
 	)
-	defer func() {
-		// Remove Docker Container
-		err := docker.RemoveContainer(res.ID)
-		assert.NoError(t, err)
-
-		// need time to remove container
-		//time.Sleep(20 * time.Second)
-	}()
+	// then
 	assert.NoError(t, err)
+
+	// when
+	containerName, err := getContainerName(res.ID)
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, "/container_mock", containerName)
 }
 
 func TestStartContainer(t *testing.T) {
+	defer setup(t, removeAllContainers)()
 
 	//given
 	GOPATH := os.Getenv("GOPATH")
@@ -43,20 +54,16 @@ func TestStartContainer(t *testing.T) {
 		"50005",
 	)
 
+	// when
 	err = docker.StartContainer(res)
-
-	defer func() {
-		// Remove Docker Container
-		err := docker.KillContainer(res.ID)
-		assert.NoError(t, err)
-
-		err = docker.RemoveContainer(res.ID)
-		assert.NoError(t, err)
-
-		// need time to remove container
-		//time.Sleep(20 * time.Second)
-	}()
+	// then
 	assert.NoError(t, err)
+
+	// when
+	containerName, err := getContainerName(res.ID)
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, "/container_mock", containerName)
 }
 
 func TestPullImage(t *testing.T) {
@@ -117,6 +124,47 @@ func removeImage(image string) error {
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func getContainerName(containerID string) (string, error) {
+	ctx := context.Background()
+	cli, err := dockerlib.NewEnvClient()
+	defer cli.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	containerJSON, err := cli.ContainerInspect(ctx, containerID)
+	if err != nil {
+		return "", err
+	}
+
+	return containerJSON.Name, nil
+}
+
+func removeAllContainers() error {
+	ctx := context.Background()
+	cli, err := dockerlib.NewEnvClient()
+	defer cli.Close()
+
+	if err != nil {
+		return err
+	}
+
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+	if err != nil {
+		return err
+	}
+
+	for _, container := range containers {
+		err := cli.ContainerRemove(ctx, container.ID, types.ContainerRemoveOptions{Force: true})
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
