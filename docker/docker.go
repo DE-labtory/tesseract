@@ -79,7 +79,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 				Target:   "/go/log",
 			},
 		},
-	}, nil, "")
+	}, nil, makeICodeContainerName(srcPath))
 
 	if err != nil {
 		return res, err
@@ -231,4 +231,9 @@ func makeICodeLogPath(srcPath string) string {
 	_, b, _, _ := runtime.Caller(0)
 	basePath := filepath.Dir(b)
 	return path.Join(basePath, "../logs", fmt.Sprintf("icode_%s", filepath.Base(srcPath)))
+}
+
+func makeICodeContainerName(srcPath string) string {
+	icodeName := filepath.Base(srcPath)
+	return fmt.Sprintf("container_%s", icodeName)
 }
