@@ -6,9 +6,15 @@ import (
 	"io"
 	"os"
 
+	"fmt"
+	"path"
+	"path/filepath"
+	"runtime"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
+	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
 )
@@ -40,12 +46,17 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		}},
 	}
 
+	err = makeICodeLogDir(srcPath)
+	if err != nil {
+		return res, err
+	}
+
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Cmd: []string{
 			"go",
 			"run",
-			"/go/src/" + destPath + "/icode.go",
+			path.Join("/go/src", destPath, "icode.go"),
 			"-p" + port,
 		},
 		Tty:          true,
@@ -59,6 +70,14 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		PortBindings: portBindings,
 		Binds: []string{
 			srcPath + ":/go/src/" + destPath,
+		},
+		Mounts: []mount.Mount{
+			{
+				ReadOnly: false,
+				Type:     mount.TypeBind,
+				Source:   makeICodeLogPath(srcPath),
+				Target:   "/go/log",
+			},
 		},
 	}, nil, "")
 
@@ -191,4 +210,25 @@ func GetPorts() ([]types.Port, error) {
 	}
 
 	return portList, nil
+}
+
+func makeICodeLogDir(srcPath string) error {
+	logDirPath := makeICodeLogPath(srcPath)
+
+	_, err := os.Stat(logDirPath)
+	if os.IsNotExist(err) {
+		err := os.MkdirAll(logDirPath, 0755)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+	return nil
+}
+
+func makeICodeLogPath(srcPath string) string {
+	_, b, _, _ := runtime.Caller(0)
+	basePath := filepath.Dir(b)
+	return path.Join(basePath, "../logs", fmt.Sprintf("icode_%s", filepath.Base(srcPath)))
 }
