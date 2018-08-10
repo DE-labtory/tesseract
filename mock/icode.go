@@ -20,7 +20,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -46,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("port : " + strconv.Itoa(opts.Port))
+	logger.Info(nil, "port : " + strconv.Itoa(opts.Port))
 
 	exHandler := &handler.HandlerExample{}
 	ibox := sdk.NewIBox(opts.Port)
