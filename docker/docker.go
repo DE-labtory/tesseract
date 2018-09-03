@@ -213,6 +213,14 @@ func GetPorts() ([]types.Port, error) {
 	return portList, nil
 }
 
+func GetHostIpAddress() string {
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	host, _ := docker.ParseHostURL(cli.DaemonHost())
+	return strings.Split(host.Host, ":")[0]
+}
+
 func makeICodeLogDir(srcPath string) error {
 	logDirPath := makeICodeLogPath(srcPath)
 
