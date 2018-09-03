@@ -28,14 +28,12 @@ func NewClientStream(address string) (*ClientStream, error) {
 	dialContext, _ := context.WithTimeout(context.Background(), defaultDialTimeout)
 
 	conn, err := grpc.DialContext(dialContext, address, grpc.WithInsecure())
-
 	if err != nil {
 		return nil, err
 	}
 	ctx, cf := context.WithCancel(context.Background())
 	client := pb.NewBistreamServiceClient(conn)
 	clientStream, err := client.RunICode(ctx)
-
 	if err != nil {
 		//conn.Close()
 		//cf()
