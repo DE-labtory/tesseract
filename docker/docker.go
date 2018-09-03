@@ -17,6 +17,7 @@ import (
 	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
+	"strings"
 )
 
 func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
@@ -69,7 +70,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBindings,
 		Binds: []string{
-			srcPath + ":/go/src/" + destPath,
+			makeICodePath(srcPath) + ":/go/src/" + destPath,
 		},
 		Mounts: []mount.Mount{
 			{
@@ -79,7 +80,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 				Target:   "/go/log",
 			},
 		},
-	}, nil, makeICodeContainerName(srcPath))
+	}, nil, "")
 
 	if err != nil {
 		return res, err
@@ -228,9 +229,31 @@ func makeICodeLogDir(srcPath string) error {
 }
 
 func makeICodeLogPath(srcPath string) string {
-	_, b, _, _ := runtime.Caller(0)
-	basePath := filepath.Dir(b)
-	return path.Join(basePath, "../logs", fmt.Sprintf("icode_%s", filepath.Base(srcPath)))
+	icodePath := srcPath
+
+	if runtime.GOOS == "windows" {
+		icodePath = ConvertToAbsPathForWindows(icodePath)
+		logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
+		return path.Join(ConvertToAbsPathForWindows(srcPath), "../logs", logDir)
+	}
+
+	return path.Join(srcPath, "../logs", fmt.Sprintf("icode_%s", filepath.Base(srcPath)))
+}
+
+func makeICodePath(srcPath string) string {
+	icodePath := srcPath
+
+	if runtime.GOOS == "windows" {
+		icodePath = ConvertToAbsPathForWindows(icodePath)
+	}
+
+	return icodePath
+}
+
+func ConvertToAbsPathForWindows(srcPath string) string {
+	splited := strings.Split(srcPath, ":")
+	driveName := strings.ToLower(splited[0])
+	return strings.Replace("/" + driveName + splited[1], "\\", "/", -1)
 }
 
 func makeICodeContainerName(srcPath string) string {
