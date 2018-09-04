@@ -18,6 +18,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
 	"strings"
+	"github.com/it-chain/tesseract/logger"
 )
 
 func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
@@ -52,6 +53,13 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		return res, err
 	}
 
+	containerName := makeICodeContainerName(srcPath)
+	if IsContainerExist(containerName) {
+		logger.Info(nil, fmt.Sprintf("[tesseract] container name \"/%s\" exist, container name now random generated", containerName))
+		containerName = ""
+	}
+
+
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Cmd: []string{
@@ -80,7 +88,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 				Target:   "/go/log",
 			},
 		},
-	}, nil, "")
+	}, nil, containerName)
 
 	if err != nil {
 		return res, err
@@ -183,6 +191,21 @@ func KillContainer(id string) error {
 	defer cli.Close()
 
 	return cli.ContainerKill(ctx, id, "9")
+}
+
+func IsContainerExist(name string) bool {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	containerList, _ := cli.ContainerList(ctx, types.ContainerListOptions{All:true})
+	for _, container := range containerList {
+		if container.Names[0] == fmt.Sprintf("/%s", name) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // todo : create test case
