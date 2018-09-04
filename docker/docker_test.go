@@ -42,6 +42,43 @@ func TestCreateContainerWithCellCode(t *testing.T) {
 	assert.Equal(t, "/container_mock", containerName)
 }
 
+func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testing.T) {
+	defer setup(t, removeAllContainers)()
+
+	GOPATH := os.Getenv("GOPATH")
+	// when
+	res, err := docker.CreateContainer(
+		tesseract.GetDefaultImage(),
+		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+		"github.com/mock",
+		"50005",
+	)
+	// then
+	assert.NoError(t, err)
+
+	// when
+	containerName, err := getContainerName(res.ID)
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, "/container_mock", containerName)
+
+	// when
+	res2, err := docker.CreateContainer(
+		tesseract.GetDefaultImage(),
+		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+		"github.com/mock",
+		"50005",
+	)
+	// then
+	assert.NoError(t, err)
+
+	// when
+	randomGeneratedName, err := getContainerName(res2.ID)
+	// then
+	assert.NoError(t, err)
+	assert.NotEqual(t, "/container_mock", randomGeneratedName)
+}
+
 func TestStartContainer(t *testing.T) {
 	defer setup(t, removeAllContainers)()
 
