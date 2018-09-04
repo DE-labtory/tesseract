@@ -55,7 +55,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 
 	containerName := makeICodeContainerName(srcPath)
 	if IsContainerExist(containerName) {
-		logger.Info(nil, fmt.Sprintf("[tesseract] container name \"/%s\" exist, container name now random generated", containerName))
+		logger.Info(nil, fmt.Sprintf("[tesseract] container name \"%s\" exist, container name now random generated", containerName))
 		containerName = ""
 	}
 
@@ -261,14 +261,13 @@ func makeICodeLogDir(srcPath string) error {
 
 func makeICodeLogPath(srcPath string) string {
 	icodePath := srcPath
+	logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
 
 	if runtime.GOOS == "windows" {
 		icodePath = ConvertToAbsPathForWindows(icodePath)
-		logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
-		return path.Join(ConvertToAbsPathForWindows(srcPath), "../logs", logDir)
 	}
 
-	return path.Join(srcPath, "../logs", fmt.Sprintf("icode_%s", filepath.Base(srcPath)))
+	return path.Join(icodePath, "../logs", logDir)
 }
 
 func makeICodePath(srcPath string) string {

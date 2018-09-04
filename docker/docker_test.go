@@ -10,6 +10,7 @@ import (
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/stretchr/testify/assert"
+	"runtime"
 )
 
 type CleanFunc = func() error
@@ -77,6 +78,42 @@ func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testi
 	// then
 	assert.NoError(t, err)
 	assert.NotEqual(t, "/container_mock", randomGeneratedName)
+}
+
+func TestIsContainerExist(t *testing.T) {
+	defer setup(t, removeAllContainers)()
+
+	GOPATH := os.Getenv("GOPATH")
+	// when
+	_, err := docker.CreateContainer(
+		tesseract.GetDefaultImage(),
+		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+		"github.com/mock",
+		"50005",
+	)
+	// then
+	assert.NoError(t, err)
+
+	// when
+	exist := docker.IsContainerExist("container_mock")
+	// then
+	assert.Equal(t, true, exist)
+
+	// when
+	exist2 := docker.IsContainerExist("/strange_container_name")
+	// then
+	assert.Equal(t, false, exist2)
+}
+
+func TestConvertToAbsPathForWindows(t *testing.T) {
+	if runtime.GOOS == "window" {
+		GOPATH := os.Getenv("GOPATH")
+
+		// when
+		result := docker.ConvertToAbsPathForWindows(GOPATH)
+		// then
+		assert.Equal(t, "/c", result[:2])
+	}
 }
 
 func TestStartContainer(t *testing.T) {
