@@ -48,7 +48,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		}},
 	}
 
-	err = makeICodeLogDir(srcPath)
+	logDirPath, err := MakeICodeLogDir(srcPath)
 	if err != nil {
 		return res, err
 	}
@@ -84,7 +84,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 			{
 				ReadOnly: false,
 				Type:     mount.TypeBind,
-				Source:   makeICodeLogPath(srcPath),
+				Source:   ConvertToAbsPathForWindows(logDirPath),
 				Target:   "/go/log",
 			},
 		},
@@ -244,30 +244,25 @@ func GetHostIpAddress() string {
 	return strings.Split(host.Host, ":")[0]
 }
 
-func makeICodeLogDir(srcPath string) error {
-	logDirPath := makeICodeLogPath(srcPath)
+func MakeICodeLogDir(path string) (string, error) {
+	logDirPath := makeICodeLogPath(path)
 
 	_, err := os.Stat(logDirPath)
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(logDirPath, 0755)
 		if err != nil {
-			return err
+			return logDirPath, err
 		}
 
-		return nil
+		return logDirPath, nil
 	}
-	return nil
+	return logDirPath, nil
 }
 
 func makeICodeLogPath(srcPath string) string {
 	icodePath := srcPath
 	logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
-
-	if runtime.GOOS == "windows" {
-		icodePath = ConvertToAbsPathForWindows(icodePath)
-	}
-
-	return path.Join(icodePath, "../logs", logDir)
+	return path.Join(icodePath, "../../icode-logs", logDir)
 }
 
 func makeICodePath(srcPath string) string {
