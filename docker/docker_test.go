@@ -11,6 +11,8 @@ import (
 	"github.com/it-chain/tesseract/docker"
 	"github.com/stretchr/testify/assert"
 	"runtime"
+	"path/filepath"
+	"path"
 )
 
 type CleanFunc = func() error
@@ -114,6 +116,18 @@ func TestConvertToAbsPathForWindows(t *testing.T) {
 		// then
 		assert.Equal(t, "/c", result[:2])
 	}
+}
+
+func TestMakeICodeLogDir(t *testing.T) {
+	currentPath, _ := filepath.Abs("./")
+	defer os.RemoveAll(".tmp")
+
+	targetPath := path.Join(currentPath, ".tmp", "dir1", "dir2")
+	docker.MakeICodeLogDir(targetPath)
+
+	_, err := os.Stat(path.Join(currentPath, ".tmp/icode-logs/icode_dir2"))
+
+	assert.Equal(t, false, os.IsNotExist(err))
 }
 
 func TestStartContainer(t *testing.T) {
