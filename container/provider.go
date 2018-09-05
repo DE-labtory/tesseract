@@ -27,11 +27,12 @@ import (
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/rpc"
+	"runtime"
 )
 
 var ErrFailedPullImage = errors.New("failed to pull image")
 var defaultPort = "50001"
-//var ipAddress = "0.0.0.0"
+var defaultIpAddress = "0.0.0.0"
 
 func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
@@ -69,7 +70,11 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	ipAddress := docker.GetHostIpAddress()
+	ipAddress := defaultIpAddress
+	if runtime.GOOS == "windows" {
+		ipAddress = docker.GetHostIpAddress()
+	}
+
 	client, err := createClient(ipAddress)
 
 	if err != nil {
