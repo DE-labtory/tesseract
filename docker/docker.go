@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
-	"runtime"
-
 	"strings"
 
 	"docker.io/go-docker"
@@ -49,7 +47,8 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		}},
 	}
 
-	logDirPath, err := MakeICodeLogDir(srcPath)
+	logDirPath := makeICodeLogPath(srcPath)
+	err = MakeICodeLogDir(logDirPath)
 	if err != nil {
 		return res, err
 	}
@@ -84,7 +83,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 			{
 				ReadOnly: false,
 				Type:     mount.TypeBind,
-				Source:   logDirPath,
+				Source:   ConvertToSlashedPath(logDirPath),
 				Target:   "/go/log",
 			},
 		},
@@ -244,46 +243,39 @@ func GetHostIpAddress() string {
 	return strings.Split(host.Host, ":")[0]
 }
 
-func MakeICodeLogDir(path string) (string, error) {
-	logDirPath := makeICodeLogPath(path)
-
+func MakeICodeLogDir(logDirPath string) error {
 	_, err := os.Stat(logDirPath)
 	if os.IsNotExist(err) {
 		err := os.MkdirAll(logDirPath, 0755)
 		if err != nil {
-			return logDirPath, err
+			return err
 		}
 
-		return logDirPath, nil
+		return nil
 	}
-	return logDirPath, nil
+	return nil
 }
 
 func makeICodeLogPath(srcPath string) string {
 	icodeLogPath := srcPath
 	logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
-
-	if runtime.GOOS == "windows" {
-		icodeLogPath = ConvertToAbsPathForWindows(icodeLogPath)
-	}
-
 	return path.Join(icodeLogPath, "../../icode-logs", logDir)
 }
 
 func makeICodePath(srcPath string) string {
-	icodePath := srcPath
-
-	if runtime.GOOS == "windows" {
-		icodePath = ConvertToAbsPathForWindows(icodePath)
-	}
-
-	return icodePath
+	return ConvertToSlashedPath(srcPath)
 }
 
-func ConvertToAbsPathForWindows(srcPath string) string {
+func ConvertToSlashedPath(srcPath string) string {
 	splited := strings.Split(srcPath, ":")
+
+	if len(splited) <= 1 {
+		return srcPath
+	}
+
 	driveName := strings.ToLower(splited[0])
 	return strings.Replace("/"+driveName+splited[1], "\\", "/", -1)
+
 }
 
 func makeICodeContainerName(srcPath string) string {

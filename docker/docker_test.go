@@ -107,12 +107,12 @@ func TestIsContainerExist(t *testing.T) {
 	assert.Equal(t, false, exist2)
 }
 
-func TestConvertToAbsPathForWindows(t *testing.T) {
+func TestConvertToSlashedPath(t *testing.T) {
 	if runtime.GOOS == "window" {
 		GOPATH := os.Getenv("GOPATH")
 
 		// when
-		result := docker.ConvertToAbsPathForWindows(GOPATH)
+		result := docker.ConvertToSlashedPath(GOPATH)
 		// then
 		assert.Equal(t, "/c", result[:2])
 	}
@@ -125,7 +125,7 @@ func TestMakeICodeLogDir(t *testing.T) {
 	targetPath := path.Join(currentPath, ".tmp", "dir1", "dir2")
 	docker.MakeICodeLogDir(targetPath)
 
-	_, err := os.Stat(path.Join(currentPath, ".tmp/icode-logs/icode_dir2"))
+	_, err := os.Stat(path.Join(currentPath, ".tmp/dir1/dir2"))
 
 	assert.Equal(t, false, os.IsNotExist(err))
 }
