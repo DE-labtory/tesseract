@@ -11,13 +11,14 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"strings"
+
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
-	"strings"
 	"github.com/it-chain/tesseract/logger"
 )
 
@@ -59,7 +60,6 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		containerName = ""
 	}
 
-
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
 		Cmd: []string{
@@ -84,7 +84,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 			{
 				ReadOnly: false,
 				Type:     mount.TypeBind,
-				Source:   ConvertToAbsPathForWindows(logDirPath),
+				Source:   logDirPath,
 				Target:   "/go/log",
 			},
 		},
@@ -198,7 +198,7 @@ func IsContainerExist(name string) bool {
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
 
-	containerList, _ := cli.ContainerList(ctx, types.ContainerListOptions{All:true})
+	containerList, _ := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
 	for _, container := range containerList {
 		if container.Names[0] == fmt.Sprintf("/%s", name) {
 			return true
@@ -260,9 +260,14 @@ func MakeICodeLogDir(path string) (string, error) {
 }
 
 func makeICodeLogPath(srcPath string) string {
-	icodePath := srcPath
+	icodeLogPath := srcPath
 	logDir := fmt.Sprintf("icode_%s", filepath.Base(srcPath))
-	return path.Join(icodePath, "../../icode-logs", logDir)
+
+	if runtime.GOOS == "windows" {
+		icodeLogPath = ConvertToAbsPathForWindows(icodeLogPath)
+	}
+
+	return path.Join(icodeLogPath, "../../icode-logs", logDir)
 }
 
 func makeICodePath(srcPath string) string {
@@ -278,7 +283,7 @@ func makeICodePath(srcPath string) string {
 func ConvertToAbsPathForWindows(srcPath string) string {
 	splited := strings.Split(srcPath, ":")
 	driveName := strings.ToLower(splited[0])
-	return strings.Replace("/" + driveName + splited[1], "\\", "/", -1)
+	return strings.Replace("/"+driveName+splited[1], "\\", "/", -1)
 }
 
 func makeICodeContainerName(srcPath string) string {
