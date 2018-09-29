@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/pb"
+	"github.com/it-chain/iLogger"
 	"google.golang.org/grpc"
 )
 
@@ -58,11 +58,11 @@ func (cs *ClientStream) StartHandle() {
 		for {
 			res, err := cs.clientStream.Recv()
 			if err == io.EOF || res == nil {
-				logger.Info(nil, "[Tesseract] client stream finish")
+				iLogger.Info(nil, "[Tesseract] client stream finish")
 				return
 			}
 			if cs.Handler == nil {
-				logger.Fatal(nil, "[Tesseract] error in start handle. there is no handle")
+				iLogger.Fatal(nil, "[Tesseract] error in start handle. there is no handle")
 				return
 			}
 			cs.Handler.Handle(res, err)
@@ -105,7 +105,7 @@ func (d *DefaultHandler) Handle(response *pb.Response, err error) {
 	callbackFunc := d.callBacks[response.Uuid]
 
 	if callbackFunc == nil {
-		logger.Panicf(nil, "[Tesseract] error in handle uuid : ", response.Uuid)
+		iLogger.Panicf(nil, "[Tesseract] error in handle uuid : %s", response.Uuid)
 	}
 
 	callbackFunc(response, err)

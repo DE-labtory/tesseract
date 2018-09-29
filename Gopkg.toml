@@ -24,6 +24,11 @@
 #   go-tests = true
 #   unused-packages = true
 
+ignored = ["github.com/mock/handler"]
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/it-chain/iLogger"
 
 [[constraint]]
   name = "docker.io/go-docker"

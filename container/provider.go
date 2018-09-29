@@ -25,8 +25,8 @@ import (
 
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
-	"github.com/it-chain/tesseract/logger"
 	"github.com/it-chain/tesseract/rpc"
+	"github.com/it-chain/iLogger"
 	"runtime"
 )
 
@@ -36,7 +36,7 @@ var defaultIpAddress = "0.0.0.0"
 
 func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
-	logger.Info(nil, "[Tesseract] creating container")
+	iLogger.Info(nil, "[Tesseract] creating container")
 	containerImage := tesseract.GetDefaultImage()
 
 	var port string
@@ -65,7 +65,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	err = docker.StartContainer(res)
 
 	if err != nil {
-		logger.Errorf(nil, "[Tesseract] fail to create container: %s", err.Error())
+		iLogger.Errorf(nil, "[Tesseract] fail to create container: %s", err.Error())
 		docker.RemoveContainer(res.ID)
 		return DockerContainer{}, err
 	}
@@ -78,7 +78,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	client, err := createClient(ipAddress)
 
 	if err != nil {
-		logger.Errorf(nil, "[Tesseract] closing container %s", res.ID)
+		iLogger.Errorf(nil, "[Tesseract] closing container %s", res.ID)
 		docker.KillContainer(res.ID)
 		docker.RemoveContainer(res.ID)
 		return DockerContainer{}, err

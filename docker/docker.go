@@ -17,7 +17,7 @@ import (
 	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/logger"
+	"github.com/it-chain/iLogger"
 )
 
 func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
@@ -55,7 +55,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 
 	containerName := makeICodeContainerName(srcPath)
 	if IsContainerExist(containerName) {
-		logger.Info(nil, fmt.Sprintf("[tesseract] container name \"%s\" exist, container name now random generated", containerName))
+		iLogger.Infof(nil, "[tesseract] container name \"%s\" exist, container name now random generated", containerName)
 		containerName = ""
 	}
 
