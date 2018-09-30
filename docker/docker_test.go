@@ -24,88 +24,88 @@ func setup(t *testing.T, callback CleanFunc) CleanFunc {
 	return callback
 }
 
-func TestCreateContainerWithCellCode(t *testing.T) {
-	defer setup(t, removeAllContainers)()
+//func TestCreateContainerWithCellCode(t *testing.T) {
+//	defer setup(t, removeAllContainers)()
+//
+//	GOPATH := os.Getenv("GOPATH")
+//	// when
+//	res, err := docker.CreateContainer(
+//		tesseract.GetDefaultImage(),
+//		GOPATH+"/src/github.com/it-chain/tesseract/mock",
+//		"github.com/mock",
+//		"50005",
+//	)
+//	// then
+//	assert.NoError(t, err)
+//
+//	// when
+//	containerName, err := getContainerName(res.ID)
+//	// then
+//	assert.NoError(t, err)
+//	assert.Equal(t, "/container_mock", containerName)
+//}
 
-	GOPATH := os.Getenv("GOPATH")
-	// when
-	res, err := docker.CreateContainer(
-		tesseract.GetDefaultImage(),
-		GOPATH+"/src/github.com/it-chain/tesseract/mock",
-		"github.com/mock",
-		"50005",
-	)
-	// then
-	assert.NoError(t, err)
+//func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testing.T) {
+//	defer setup(t, removeAllContainers)()
+//
+//	GOPATH := os.Getenv("GOPATH")
+//	// when
+//	res, err := docker.CreateContainer(
+//		tesseract.GetDefaultImage(),
+//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		"github.com/mock",
+//		"50005",
+//	)
+//	// then
+//	assert.NoError(t, err)
+//
+//	// when
+//	containerName, err := getContainerName(res.ID)
+//	// then
+//	assert.NoError(t, err)
+//	assert.Equal(t, "/container_mock", containerName)
+//
+//	// when
+//	res2, err := docker.CreateContainer(
+//		tesseract.GetDefaultImage(),
+//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		"github.com/mock",
+//		"50005",
+//	)
+//	// then
+//	assert.NoError(t, err)
+//
+//	// when
+//	randomGeneratedName, err := getContainerName(res2.ID)
+//	// then
+//	assert.NoError(t, err)
+//	assert.NotEqual(t, "/container_mock", randomGeneratedName)
+//}
 
-	// when
-	containerName, err := getContainerName(res.ID)
-	// then
-	assert.NoError(t, err)
-	assert.Equal(t, "/container_mock", containerName)
-}
-
-func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testing.T) {
-	defer setup(t, removeAllContainers)()
-
-	GOPATH := os.Getenv("GOPATH")
-	// when
-	res, err := docker.CreateContainer(
-		tesseract.GetDefaultImage(),
-		GOPATH + "/src/github.com/it-chain/tesseract/mock",
-		"github.com/mock",
-		"50005",
-	)
-	// then
-	assert.NoError(t, err)
-
-	// when
-	containerName, err := getContainerName(res.ID)
-	// then
-	assert.NoError(t, err)
-	assert.Equal(t, "/container_mock", containerName)
-
-	// when
-	res2, err := docker.CreateContainer(
-		tesseract.GetDefaultImage(),
-		GOPATH + "/src/github.com/it-chain/tesseract/mock",
-		"github.com/mock",
-		"50005",
-	)
-	// then
-	assert.NoError(t, err)
-
-	// when
-	randomGeneratedName, err := getContainerName(res2.ID)
-	// then
-	assert.NoError(t, err)
-	assert.NotEqual(t, "/container_mock", randomGeneratedName)
-}
-
-func TestIsContainerExist(t *testing.T) {
-	defer setup(t, removeAllContainers)()
-
-	GOPATH := os.Getenv("GOPATH")
-	// when
-	_, err := docker.CreateContainer(
-		tesseract.GetDefaultImage(),
-		GOPATH + "/src/github.com/it-chain/tesseract/mock",
-		"github.com/mock",
-		"50005",
-	)
-	// then
-	assert.NoError(t, err)
-
-	// when
-	exist := docker.IsContainerExist("container_mock")
-	// then
-	assert.Equal(t, true, exist)
-
-	// when
-	exist2 := docker.IsContainerExist("/strange_container_name")
-	// then
-	assert.Equal(t, false, exist2)
-}
+//func TestIsContainerExist(t *testing.T) {
+//	defer setup(t, removeAllContainers)()
+//
+//	GOPATH := os.Getenv("GOPATH")
+//	// when
+//	_, err := docker.CreateContainer(
+//		tesseract.GetDefaultImage(),
+//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		"github.com/mock",
+//		"50005",
+//	)
+//	// then
+//	assert.NoError(t, err)
+//
+//	// when
+//	exist := docker.IsContainerExist("container_mock")
+//	// then
+//	assert.Equal(t, true, exist)
+//
+//	// when
+//	exist2 := docker.IsContainerExist("/strange_container_name")
+//	// then
+//	assert.Equal(t, false, exist2)
+//}
 
 func TestConvertToSlashedPath(t *testing.T) {
 	if runtime.GOOS == "window" {
@@ -130,29 +130,29 @@ func TestMakeICodeLogDir(t *testing.T) {
 	assert.Equal(t, false, os.IsNotExist(err))
 }
 
-func TestStartContainer(t *testing.T) {
-	defer setup(t, removeAllContainers)()
-
-	//given
-	GOPATH := os.Getenv("GOPATH")
-	res, err := docker.CreateContainer(
-		tesseract.GetDefaultImage(),
-		GOPATH+"/src/github.com/it-chain/tesseract/mock",
-		"github.com/mock",
-		"50005",
-	)
-
-	// when
-	err = docker.StartContainer(res)
-	// then
-	assert.NoError(t, err)
-
-	// when
-	containerName, err := getContainerName(res.ID)
-	// then
-	assert.NoError(t, err)
-	assert.Equal(t, "/container_mock", containerName)
-}
+//func TestStartContainer(t *testing.T) {
+//	defer setup(t, removeAllContainers)()
+//
+//	//given
+//	GOPATH := os.Getenv("GOPATH")
+//	res, err := docker.CreateContainer(
+//		tesseract.GetDefaultImage(),
+//		GOPATH+"/src/github.com/it-chain/tesseract/mock",
+//		"github.com/mock",
+//		"50005",
+//	)
+//
+//	// when
+//	err = docker.StartContainer(res)
+//	// then
+//	assert.NoError(t, err)
+//
+//	// when
+//	containerName, err := getContainerName(res.ID)
+//	// then
+//	assert.NoError(t, err)
+//	assert.Equal(t, "/container_mock", containerName)
+//}
 
 func TestPullImage(t *testing.T) {
 

@@ -87,7 +87,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 				Target:   "/go/log",
 			},
 		},
-	}, nil, containerName)
+	}, nil, "")
 
 	if err != nil {
 		return res, err
