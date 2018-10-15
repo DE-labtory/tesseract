@@ -30,6 +30,7 @@ type ContainerConfig struct {
 	Url            string
 	Directory      string
 	ContainerImage ContainerImage
+	UseDocker      bool
 	language       string // ENUM 으로 대체하면 좋음
 }
 
