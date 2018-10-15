@@ -1,4 +1,4 @@
-# Tesseract
+# Tesseract [![Build Status](https://travis-ci.org/zeroFruit/tesseract.svg?branch=develop)](https://travis-ci.org/zeroFruit/tesseract)
 
 <p align="center"><img src="./image/tesseract.png"></p>
 
