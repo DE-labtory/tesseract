@@ -1,0 +1,23 @@
+language: go
+
+go:
+- '1.10'
+
+notifications:
+  email: false
+
+services:
+- docker
+
+git:
+  depth: 1
+
+before_install:
+- curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+- go get golang.org/x/tools/cmd/goimports
+
+install:
+- dep ensure
+
+script:
+- bash ./travis/run.sh
