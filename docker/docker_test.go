@@ -5,14 +5,15 @@ import (
 	"os"
 	"testing"
 
+	"path"
+	"path/filepath"
+	"runtime"
+
 	dockerlib "docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/stretchr/testify/assert"
-	"runtime"
-	"path/filepath"
-	"path"
 )
 
 type CleanFunc = func() error
@@ -22,6 +23,33 @@ func setup(t *testing.T, callback CleanFunc) CleanFunc {
 	assert.NoError(t, err)
 
 	return callback
+}
+
+func TestCreateVolume(t *testing.T) {
+	// given
+	name := "myvol"
+
+	defer DeleteVolumeByName(name)
+
+	// when
+	vol, err := docker.CreateVolume(name)
+	// then
+	assert.NoError(t, err)
+
+	// when
+	result, err := docker.FindVolumeByName(vol.Name)
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, result.Name, vol.Name)
+	assert.Equal(t, result.Mountpoint, vol.Mountpoint)
+}
+
+func DeleteVolumeByName(name string) error {
+	ctx := context.Background()
+	cli, _ := dockerlib.NewEnvClient()
+	defer cli.Close()
+
+	return cli.VolumeRemove(ctx, name, true)
 }
 
 //func TestCreateContainerWithCellCode(t *testing.T) {
