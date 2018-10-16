@@ -16,7 +16,9 @@
 
 package tesseract
 
-import "github.com/it-chain/tesseract/pb"
+import (
+	"github.com/it-chain/tesseract/pb"
+)
 
 type ContainerID = string
 type CallBack func(response *pb.Response, err error)
