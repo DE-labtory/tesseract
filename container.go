@@ -17,9 +17,7 @@
 package tesseract
 
 import (
-	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/pb"
-	"github.com/it-chain/tesseract/volume"
 )
 
 type ContainerID = string
@@ -86,20 +84,4 @@ type Port struct {
 
 	// Port exposed on the host
 	PublicPort int
-}
-
-type VolumeID = string
-
-type Volume interface {
-	GetID() VolumeID
-	GetMountPoint() string
-}
-
-func CreateVolume(name string) (volume.Volume, error) {
-	res, err := docker.CreateVolume(name)
-	if err != nil {
-		return volume.Volume{}, err
-	}
-
-	return volume.NewVolume(res.CreatedAt, res.Driver, res.Mountpoint, res.Name, res.Options), nil
 }
