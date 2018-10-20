@@ -26,14 +26,14 @@ import (
 type DockerContainer struct {
 	ID     tesseract.ContainerID
 	Client *rpc.ClientStream
-	Port   string
+	config tesseract.ContainerConfig
 }
 
-func NewDockerContainer(id tesseract.ContainerID, client *rpc.ClientStream, port string) DockerContainer {
+func NewDockerContainer(id tesseract.ContainerID, client *rpc.ClientStream, config tesseract.ContainerConfig) DockerContainer {
 	return DockerContainer{
 		ID:     id,
 		Client: client,
-		Port:   port,
+		config: config,
 	}
 }
 

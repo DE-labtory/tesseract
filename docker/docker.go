@@ -17,13 +17,12 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
-	"docker.io/go-docker/api/types/mount"
-	"github.com/docker/go-connections/nat"
+	git"github.com/docker/go-connections/nat"
 	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
 )
 
-func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, IP string, port string) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
@@ -45,7 +44,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 
 	portBindings := nat.PortMap{
 		nat.Port(port + "/tcp"): []nat.PortBinding{{
-			HostIP:   "0.0.0.0",
+			HostIP:   GetHostIpAddress(),
 			HostPort: port,
 		}},
 	}
@@ -61,6 +60,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		iLogger.Infof(nil, "[tesseract] container name \"%s\" exist, container name now random generated", containerName)
 		containerName = ""
 	}
+
 
 	res, err = cli.ContainerCreate(ctx, &container.Config{
 		Image: imageName,
@@ -80,16 +80,9 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBindings,
 		Binds: []string{
-			makeICodePath(srcPath) + ":/go/src/" + destPath,
+			"it-chain-volume" + ":/go/src/" + "github.com/junbeomlee",
 		},
-		Mounts: []mount.Mount{
-			{
-				ReadOnly: false,
-				Type:     mount.TypeBind,
-				Source:   ConvertToSlashedPath(logDirPath),
-				Target:   "/go/log",
-			},
-		},
+
 	}, nil, "")
 
 	if err != nil {
