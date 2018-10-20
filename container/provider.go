@@ -20,29 +20,25 @@ import (
 	"context"
 	"errors"
 	"net"
-	"strconv"
 	"time"
 
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/rpc"
 	"github.com/it-chain/iLogger"
-	"runtime"
 )
 
 var ErrFailedPullImage = errors.New("failed to pull image")
-var defaultPort = "50001"
-var defaultIpAddress = "0.0.0.0"
 
 func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
 	iLogger.Info(nil, "[Tesseract] creating container")
-	containerImage := tesseract.GetDefaultImage()
+	containerImage := config.ContainerImage
 
-	var port string
-	var err error
-
-	if port, err = getAvailablePort(); err != nil {
+	// checking port
+	lis, err := net.Listen("tcp", "127.0.0.1:"+config.Port)
+	lis.Close()
+	if err != nil {
 		return DockerContainer{}, err
 	}
 
@@ -55,7 +51,8 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		containerImage,
 		config.Directory,
 		config.Url,
-		port,
+		config.IP,
+		config.Port,
 	)
 
 	if err != nil {
@@ -70,12 +67,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	ipAddress := defaultIpAddress
-	if runtime.GOOS == "windows" {
-		ipAddress = docker.GetHostIpAddress()
-	}
-
-	client, err := createClient(ipAddress)
+	client, err := createClient(config.IP,config.Port)
 
 	if err != nil {
 		iLogger.Errorf(nil, "[Tesseract] closing container %s", res.ID)
@@ -84,40 +76,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	return NewDockerContainer(res.ID, client, port), nil
-}
-
-//1씩 증가 시키며 port를 확인한다
-func getAvailablePort() (string, error) {
-	portList, err := docker.GetPorts()
-	if err != nil {
-		return "", err
-	}
-
-findLoop:
-	for {
-		portNumber, err := strconv.Atoi(defaultPort)
-		if err != nil {
-			return "", err
-		}
-		for _, portInfo := range portList {
-			if portNumber == int(portInfo.PublicPort) || portNumber == int(portInfo.PrivatePort) {
-				portNumber++
-				defaultPort = strconv.Itoa(portNumber)
-				continue findLoop
-			}
-		}
-
-		lis, err := net.Listen("tcp", "127.0.0.1:"+defaultPort)
-
-		if err == nil {
-			lis.Close()
-			return defaultPort, nil
-		}
-
-		portNumber++
-		defaultPort = strconv.Itoa(portNumber)
-	}
+	return NewDockerContainer(res.ID, client, config), nil
 }
 
 func pullImage(ImageFullName string) error {
@@ -136,11 +95,11 @@ func pullImage(ImageFullName string) error {
 	return nil
 }
 
-func createClient(ipAddress string) (*rpc.ClientStream, error) {
-	return retryConnectWithTimeOut(ipAddress, 120 * time.Second)
+func createClient(ipAddress string,port string) (*rpc.ClientStream, error) {
+	return retryConnectWithTimeOut(ipAddress,port, 120 * time.Second)
 }
 
-func retryConnectWithTimeOut(ipAddress string, timeout time.Duration) (*rpc.ClientStream, error) {
+func retryConnectWithTimeOut(ipAddress string, port string, timeout time.Duration) (*rpc.ClientStream, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -152,7 +111,7 @@ func retryConnectWithTimeOut(ipAddress string, timeout time.Duration) (*rpc.Clie
 		ticker := time.NewTicker(2 * time.Second)
 
 		for _ = range ticker.C {
-			client, err := rpc.NewClientStream(ipAddress + ":" + defaultPort)
+			client, err := rpc.NewClientStream(ipAddress + ":" + port)
 			if err != nil {
 				continue
 			}

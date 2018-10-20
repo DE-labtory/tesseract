@@ -35,23 +35,14 @@ type ContainerConfig struct {
 	Directory      string
 	ContainerImage ContainerImage
 	language       string // ENUM 으로 대체하면 좋음
+	IP             string
+	Port           string
+	Network string
 }
-
-const (
-	DefaultImageName = "golang"
-	DefaultImageTag  = "1.9"
-)
 
 type ContainerImage struct {
 	Name string
 	Tag  string
-}
-
-func GetDefaultImage() ContainerImage {
-	return ContainerImage{
-		Name: DefaultImageName,
-		Tag:  DefaultImageTag,
-	}
 }
 
 func (dc ContainerImage) GetFullName() string {
@@ -59,7 +50,6 @@ func (dc ContainerImage) GetFullName() string {
 }
 
 type Container interface {
-
 	// send request to container
 	Request(req Request, callback CallBack) error
 
@@ -76,18 +66,6 @@ type Request struct {
 	FuncName string
 	Args     []string
 }
-
-type Port struct {
-	// Host IP address that the container's port is mapped to
-	IP string
-
-	// Port on the container
-	PrivatePort int
-
-	// Port exposed on the host
-	PublicPort int
-}
-
 type VolumeID = string
 
 type Volume interface {
