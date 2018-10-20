@@ -3,24 +3,21 @@ package docker
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
+
+	"fmt"
 	"path"
 	"path/filepath"
-	"reflect"
 	"strings"
-
-	"docker.io/go-docker/api/types/filters"
-	"docker.io/go-docker/api/types/volume"
 
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
-	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
+	"github.com/it-chain/iLogger"
 )
 
 func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
@@ -284,57 +281,4 @@ func ConvertToSlashedPath(srcPath string) string {
 func makeICodeContainerName(srcPath string) string {
 	icodeName := filepath.Base(srcPath)
 	return fmt.Sprintf("container_%s", icodeName)
-}
-
-func CreateVolume(name string) (types.Volume, error) {
-	ctx := context.Background()
-	cli, _ := docker.NewEnvClient()
-	defer cli.Close()
-
-	vol, err := FindVolumeByName(name)
-	if err != nil {
-		return types.Volume{}, err
-	}
-	if !isVolumeEmpty(vol) {
-		return types.Volume{}, errors.New(fmt.Sprintf("volume [name: %s] already exist", vol.Name, vol.Mountpoint))
-	}
-
-	res, err := cli.VolumeCreate(ctx, convToVolumesCreateBody(name))
-	if err != nil {
-		return types.Volume{}, err
-	}
-
-	return res, nil
-}
-
-func FindVolumeByName(name string) (types.Volume, error) {
-	ctx := context.Background()
-	cli, _ := docker.NewEnvClient()
-	defer cli.Close()
-
-	listBody, err := cli.VolumeList(ctx, filters.Args{})
-	if err != nil {
-		return types.Volume{}, err
-	}
-
-	for _, vol := range listBody.Volumes {
-		if vol.Name == name {
-			return *vol, nil
-		}
-	}
-
-	return types.Volume{}, nil
-}
-
-func isVolumeEmpty(vol types.Volume) bool {
-	return reflect.DeepEqual(vol, types.Volume{})
-}
-
-func convToVolumesCreateBody(name string) volume.VolumesCreateBody {
-	return volume.VolumesCreateBody{
-		Driver:     "local",
-		DriverOpts: map[string]string{},
-		Labels:     map[string]string{},
-		Name:       name,
-	}
 }
