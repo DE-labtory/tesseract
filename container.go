@@ -17,9 +17,7 @@
 package tesseract
 
 import (
-	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/pb"
-	"github.com/it-chain/tesseract/volume"
 )
 
 type ContainerID = string
@@ -30,19 +28,34 @@ type ContainerFactory interface {
 }
 
 type ContainerConfig struct {
-	Name           string
-	Url            string
-	Directory      string
-	ContainerImage ContainerImage
-	language       string // ENUM 으로 대체하면 좋음
-	IP             string
-	Port           string
-	Network string
+	language       string 			// language that icode use
+									// todo ENUM 으로 대체하면 좋음 ( expect to change enum )
+
+	Name           string 			// container name
+
+	ContainerImage ContainerImage 	// container docker image name to pull. example : 'golang:1.9'
+
+	IP             string			// IP address that manage icode.
+
+	Port           string			// port num to communicate container and icode
+
+	StartCmd       []string 		// start command to initiate icode. it must contain icodename.
+									// for go icode example, {"go","run","testicode/icode.go","-p","4401}
+
+	Network        *Network 		// docker network option. if you don't use, nil
+
+	Volume         *Volume			// docker volume option.
+
+	ImgSrcRootPath string 			// input icode base root path.
+									// if language need specify path like go ( golang source file have to be
+									// in %GOPATH% to build ), please input GOPATH like "/go/src".
+									// if language do not use specify path to build, empty or "/"
+	HostICodeRoot string			// if not use volume option, 호스트 아이코드 루트 디렉토리를 써주세용
 }
 
 type ContainerImage struct {
-	Name string
-	Tag  string
+	Name string	// language docker image name ( ex : go )
+	Tag  string // language docker image Tag ( ex : 1.9 )
 }
 
 func (dc ContainerImage) GetFullName() string {
@@ -65,19 +78,4 @@ type Request struct {
 	TypeName string
 	FuncName string
 	Args     []string
-}
-type VolumeID = string
-
-type Volume interface {
-	GetID() VolumeID
-	GetMountPoint() string
-}
-
-func CreateVolume(name string) (volume.Volume, error) {
-	res, err := docker.CreateVolume(name)
-	if err != nil {
-		return volume.Volume{}, err
-	}
-
-	return volume.NewVolume(res.CreatedAt, res.Driver, res.Mountpoint, res.Name, res.Options), nil
 }
