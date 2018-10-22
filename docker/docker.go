@@ -17,12 +17,12 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
-	git"github.com/docker/go-connections/nat"
+	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
-)
+	)
 
-func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, IP string, port string) (container.ContainerCreateCreatedBody, error) {
+func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreateCreatedBody, error) {
 
 	GOPATH := os.Getenv("GOPATH")
 	res := container.ContainerCreateCreatedBody{}
@@ -31,7 +31,7 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 		return res, errors.New("invalid GOPATH. check your GOPATH")
 	}
 
-	imageName := containerImage.GetFullName()
+	imageName := config.ContainerImage.GetFullName()
 	setUpImage(imageName)
 
 	ctx := context.Background()
@@ -41,49 +41,68 @@ func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, de
 	if err != nil {
 		return res, err
 	}
+	networkName := ""
+	portBinding := nat.PortMap{}
+	exposedPort := nat.PortSet{}
+	volumeBind := []string{}
 
-	portBindings := nat.PortMap{
-		nat.Port(port + "/tcp"): []nat.PortBinding{{
-			HostIP:   GetHostIpAddress(),
-			HostPort: port,
-		}},
+	//set the workdir
+	if config.ImgSrcRootPath == "" {
+		config.ImgSrcRootPath = "/"
+	}
+	workDir := config.ImgSrcRootPath
+
+	if config.Network != nil {
+		networkName = config.Network.Name
+	}
+	if config.Port != "" {
+		exposedPort = nat.PortSet{
+			nat.Port(config.Port + "/tcp"): struct{}{},
+		}
+		portBinding = nat.PortMap{
+			nat.Port(config.Port + "/tcp"): []nat.PortBinding{{
+				HostIP:   config.IP,
+				HostPort: config.Port,
+			}},
+		}
+	}
+	if config.Volume != nil && config.HostICodeRoot != "" {
+		panic("볼륨과 hosticoderoot를 동시에 쓰지 말아주세요!")
 	}
 
-	logDirPath := makeICodeLogPath(srcPath)
-	err = MakeICodeLogDir(logDirPath)
+	if config.Volume != nil {
+		volumeBind = []string{config.Volume.Name + ":" + config.ImgSrcRootPath}
+	} else {
+		if config.HostICodeRoot == "" {
+			panic("볼륨과 host icode 둘다 없으면 안되요..")
+		}
+		volumeBind = []string{config.HostICodeRoot + ":" + config.ImgSrcRootPath}
+	}
+
 	if err != nil {
 		return res, err
 	}
 
-	containerName := makeICodeContainerName(srcPath)
+	containerName := config.Name
 	if IsContainerExist(containerName) {
 		iLogger.Infof(nil, "[tesseract] container name \"%s\" exist, container name now random generated", containerName)
 		containerName = ""
 	}
 
-
 	res, err = cli.ContainerCreate(ctx, &container.Config{
-		Image: imageName,
-		Cmd: []string{
-			"go",
-			"run",
-			path.Join("/go/src", destPath, "icode.go"),
-			"-p" + port,
-		},
+		Image:        imageName,
+		Cmd:          config.StartCmd,
 		Tty:          true,
 		AttachStdout: true,
 		AttachStderr: true,
-		ExposedPorts: nat.PortSet{
-			nat.Port(port + "/tcp"): struct{}{},
-		},
+		ExposedPorts: exposedPort,
+		WorkingDir:   workDir,
 	}, &container.HostConfig{
 		CapAdd:       []string{"SYS_ADMIN"},
-		PortBindings: portBindings,
-		Binds: []string{
-			"it-chain-volume" + ":/go/src/" + "github.com/junbeomlee",
-		},
-
-	}, nil, "")
+		PortBindings: portBinding,
+		Binds:        volumeBind,
+		NetworkMode:  container.NetworkMode(networkName),
+	}, nil, containerName)
 
 	if err != nil {
 		return res, err
@@ -203,34 +222,6 @@ func IsContainerExist(name string) bool {
 	return false
 }
 
-// todo : create test case
-func GetPorts() ([]types.Port, error) {
-
-	ctx := context.Background()
-	cli, _ := docker.NewEnvClient()
-	defer cli.Close()
-
-	portList := make([]types.Port, 0)
-	containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
-
-	if err != nil {
-		return portList, err
-	}
-
-	for _, container := range containerList {
-		for _, port := range container.Ports {
-			portInfo := types.Port{
-				IP:          port.IP,
-				PrivatePort: port.PrivatePort,
-				PublicPort:  port.PublicPort,
-			}
-			portList = append(portList, portInfo)
-		}
-	}
-
-	return portList, nil
-}
-
 func GetHostIpAddress() string {
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
@@ -274,30 +265,56 @@ func ConvertToSlashedPath(srcPath string) string {
 
 }
 
-func makeICodeContainerName(srcPath string) string {
-	icodeName := filepath.Base(srcPath)
-	return fmt.Sprintf("container_%s", icodeName)
-}
-
-func CreateVolume(name string) (types.Volume, error) {
+func CreateVolume(name string) (tesseract.Volume, error) {
 	ctx := context.Background()
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
 
 	vol, err := FindVolumeByName(name)
 	if err != nil {
-		return types.Volume{}, err
+		return tesseract.Volume{}, err
 	}
 	if !isVolumeEmpty(vol) {
-		return types.Volume{}, errors.New(fmt.Sprintf("volume [name: %s] already exist", vol.Name, vol.Mountpoint))
+		return tesseract.Volume{}, errors.New(fmt.Sprintf("volume [name: %s] already exist", vol.Name))
 	}
 
 	res, err := cli.VolumeCreate(ctx, convToVolumesCreateBody(name))
 	if err != nil {
-		return types.Volume{}, err
+		return tesseract.Volume{}, err
 	}
 
-	return res, nil
+	return tesseract.NewVolume(res.CreatedAt, res.Driver, res.Mountpoint, res.Name, res.Options), nil
+}
+
+func CreateNetwork(name string) (tesseract.Network,error) {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	network, err := FindNetworkByName(name)
+	if err != nil {
+		return tesseract.Network{}, err
+	}
+	if !isNetworkEmpty(network){
+		return tesseract.Network{},errors.New("already exist network name")
+	}
+	res,err := cli.NetworkCreate(ctx,name,)
+}
+func FindNetworkByName(name string) (types.NetworkResource, error) {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	networkList, err := cli.NetworkList(ctx,types.NetworkListOptions{})
+	if err != nil{
+		return types.NetworkResource{},err
+	}
+	for _,network := range networkList{
+		if network.Name == name{
+			return network,nil
+		}
+	}
+	return types.NetworkResource{},nil
 }
 
 func FindVolumeByName(name string) (types.Volume, error) {
@@ -321,6 +338,11 @@ func FindVolumeByName(name string) (types.Volume, error) {
 
 func isVolumeEmpty(vol types.Volume) bool {
 	return reflect.DeepEqual(vol, types.Volume{})
+}
+
+
+func isNetworkEmpty(vol types.NetworkResource) bool {
+	return reflect.DeepEqual(vol, types.NetworkResource{})
 }
 
 func convToVolumesCreateBody(name string) volume.VolumesCreateBody {

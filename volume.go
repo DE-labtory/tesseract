@@ -1,4 +1,4 @@
-package docker
+package tesseract
 
 // referenced go-docker repository: https://github.com/docker/go-docker/blob/master/api/types/volume.go
 type Volume struct {

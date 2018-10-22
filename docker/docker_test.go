@@ -11,9 +11,11 @@ import (
 
 	dockerlib "docker.io/go-docker"
 	"docker.io/go-docker/api/types"
-	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/stretchr/testify/assert"
+	"github.com/it-chain/tesseract"
+	"sync"
+	"time"
 )
 
 type CleanFunc = func() error
@@ -52,26 +54,47 @@ func DeleteVolumeByName(name string) error {
 	return cli.VolumeRemove(ctx, name, true)
 }
 
-//func TestCreateContainerWithCellCode(t *testing.T) {
-//	defer setup(t, removeAllContainers)()
-//
-//	GOPATH := os.Getenv("GOPATH")
-//	// when
-//	res, err := docker.CreateContainer(
-//		tesseract.GetDefaultImage(),
-//		GOPATH+"/src/github.com/it-chain/tesseract/mock",
-//		"github.com/mock",
-//		"50005",
-//	)
-//	// then
-//	assert.NoError(t, err)
-//
-//	// when
-//	containerName, err := getContainerName(res.ID)
-//	// then
-//	assert.NoError(t, err)
-//	assert.Equal(t, "/container_mock", containerName)
-//}
+func TestCreateContainer(t *testing.T) {
+	defer setup(t, removeAllContainers)()
+
+	testGolangImg := tesseract.ContainerImage{
+		Name: "golang",
+		Tag:  "1.9",
+	}
+
+	docker.CreateVolume("testVolume")
+	GOPATH := os.Getenv("GOPATH")
+	// when
+	res, err := docker.CreateContainer(tesseract.ContainerConfig{
+			Name:           "container_mock",
+			ContainerImage: testGolangImg,
+			IP:             "127.0.0.1",
+			Port:           "50001",
+			StartCmd:       []string{"go","run","icode_1/icode.go","-p","50001"},
+			Network:        nil,
+			Volume:         nil,
+			HostICodeRoot: path.Join(GOPATH,"src/github.com/it-chain/tesseract/mock"),
+			ImgSrcRootPath: "/go/src",
+
+		},
+	)
+	// then
+	docker.StartContainer(res)
+	a:=sync.WaitGroup{}
+	go func() {
+		time.Sleep(10 * time.Second)
+		a.Done()
+	}()
+	a.Add(1)
+	a.Wait()
+	assert.NoError(t, err)
+
+	// when
+	containerName, err := getContainerName(res.ID)
+	// then
+	assert.NoError(t, err)
+	assert.Equal(t, "/container_mock", containerName)
+}
 
 //func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testing.T) {
 //	defer setup(t, removeAllContainers)()
@@ -183,15 +206,14 @@ func TestMakeICodeLogDir(t *testing.T) {
 //}
 
 func TestPullImage(t *testing.T) {
-
-	err := docker.PullImage(tesseract.GetDefaultImage().GetFullName())
+	err := docker.PullImage("golang:1.9")
 	assert.NoError(t, err)
 }
 
 func TestHasImageWhenImageExist(t *testing.T) {
-
+	testImg := "golang:1.9"
 	//given
-	image := tesseract.GetDefaultImage().GetFullName()
+	image := testImg
 	err := docker.PullImage(image)
 	assert.NoError(t, err)
 
@@ -213,9 +235,9 @@ func TestHasImageWhenImageExist(t *testing.T) {
 }
 
 func TestHasImageWhenImageDoesNotExist(t *testing.T) {
-
+	testImg := "golang:1.9"
 	//given
-	image := tesseract.GetDefaultImage().GetFullName()
+	image := testImg
 	removeImage(image)
 
 	//when
