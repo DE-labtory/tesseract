@@ -18,14 +18,16 @@ package container
 
 import (
 	"context"
+
 	"errors"
+
 	"net"
 	"time"
 
+	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
 	"github.com/it-chain/tesseract/rpc"
-	"github.com/it-chain/iLogger"
 )
 
 var ErrFailedPullImage = errors.New("failed to pull image")
@@ -49,10 +51,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	// Create Docker
 	res, err := docker.CreateContainer(
 		containerImage,
-		config.Directory,
-		config.Url,
-		config.IP,
-		config.Port,
+		config,
 	)
 
 	if err != nil {
@@ -67,7 +66,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	client, err := createClient(config.IP,config.Port)
+	client, err := createClient(config.IP, config.Port)
 
 	if err != nil {
 		iLogger.Errorf(nil, "[Tesseract] closing container %s", res.ID)
@@ -95,8 +94,8 @@ func pullImage(ImageFullName string) error {
 	return nil
 }
 
-func createClient(ipAddress string,port string) (*rpc.ClientStream, error) {
-	return retryConnectWithTimeOut(ipAddress,port, 120 * time.Second)
+func createClient(ipAddress string, port string) (*rpc.ClientStream, error) {
+	return retryConnectWithTimeOut(ipAddress, port, 120*time.Second)
 }
 
 func retryConnectWithTimeOut(ipAddress string, port string, timeout time.Duration) (*rpc.ClientStream, error) {

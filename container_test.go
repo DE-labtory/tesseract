@@ -15,19 +15,3 @@
  */
 
 package tesseract_test
-
-import (
-	"testing"
-
-	"github.com/it-chain/tesseract"
-	"github.com/magiconair/properties/assert"
-)
-
-func TestGetDefaultImage(t *testing.T) {
-	assert.Equal(t, tesseract.GetDefaultImage().Name, tesseract.DefaultImageName)
-	assert.Equal(t, tesseract.GetDefaultImage().Tag, tesseract.DefaultImageTag)
-}
-
-func TestContainerImage_GetFullName(t *testing.T) {
-	assert.Equal(t, tesseract.GetDefaultImage().GetFullName(), tesseract.DefaultImageName+":"+tesseract.DefaultImageTag)
-}
