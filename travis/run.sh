@@ -1,4 +1,5 @@
 #!/bin/bash
+
 diff <(goimports -d $(find . -type f -name '*.go' -not -path "*/vendor/*")) <(printf "")
 
 if [ $? -ne 0 ]; then
