@@ -28,33 +28,34 @@ type ContainerFactory interface {
 }
 
 type ContainerConfig struct {
-	language       string 			// language that icode use
-									// todo ENUM 으로 대체하면 좋음 ( expect to change enum )
+	language string // language that icode use
+	// todo ENUM 으로 대체하면 좋음 ( expect to change enum )
 
-	Name           string 			// container name
+	Name string // container name
 
-	ContainerImage ContainerImage 	// container docker image name to pull. example : 'golang:1.9'
+	ContainerImage ContainerImage // container docker image name to pull. example : 'golang:1.9'
 
-	IP             string			// IP address that manage icode.
+	IP string // IP address that manage icode.
 
-	Port           string			// port num to communicate container and icode
+	Port string // port num to communicate container and icode
 
-	StartCmd       []string 		// start command to initiate icode. it must contain icodename.
-									// for go icode example, {"go","run","testicode/icode.go","-p","4401}
+	StartCmd []string // start command to initiate icode. it must contain icodename. ex {"go","run.sh","testicode/icode.go","-p","4401}
 
-	Network        *Network 		// docker network option. if you don't use, nil
+	Network *Network // docker network option. if you don't use, nil
 
-	Volume         *Volume			// docker volume option.
+	Mount string // [Mount-src-path or volume name]:[Mount-dist-path] ex) /go/src/github.com/it-chain/learn-icode:/icode
 
-	ImgSrcRootPath string 			// input icode base root path.
-									// if language need specify path like go ( golang source file have to be
-									// in %GOPATH% to build ), please input GOPATH like "/go/src".
-									// if language do not use specify path to build, empty or "/"
-	HostICodeRoot string			// if not use volume option, 호스트 아이코드 루트 디렉토리를 써주세용
+	//Volume *Volume // docker volume option.
+	//
+	//ImgSrcRootPath string // input icode base root path.
+	//// if language need specify path like go ( golang source file have to be
+	//// in %GOPATH% to build ), please input GOPATH like "/go/src".
+	//// if language do not use specify path to build, empty or "/"
+	//HostICodeRoot string // if not use volume option, 호스트 아이코드 루트 디렉토리를 써주세용
 }
 
 type ContainerImage struct {
-	Name string	// language docker image name ( ex : go )
+	Name string // language docker image name ( ex : go )
 	Tag  string // language docker image Tag ( ex : 1.9 )
 }
 
