@@ -81,10 +81,8 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 	}, &container.HostConfig{
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBinding,
-		Binds: []string{
-			config.Mount,
-		},
-		NetworkMode: container.NetworkMode(networkName),
+		Binds:        config.Mount,
+		NetworkMode:  container.NetworkMode(networkName),
 	}, nil, containerName)
 
 	if err != nil {
@@ -257,8 +255,9 @@ func CreateVolume(name string) (tesseract.Volume, error) {
 	if err != nil {
 		return tesseract.Volume{}, err
 	}
+
 	if !isVolumeEmpty(vol) {
-		return tesseract.Volume{}, errors.New(fmt.Sprintf("volume [name: %s] already exist", vol.Name))
+		return tesseract.NewVolume(vol.CreatedAt, vol.Driver, vol.Mountpoint, vol.Name, vol.Options), nil
 	}
 
 	res, err := cli.VolumeCreate(ctx, convToVolumesCreateBody(name))
@@ -267,6 +266,14 @@ func CreateVolume(name string) (tesseract.Volume, error) {
 	}
 
 	return tesseract.NewVolume(res.CreatedAt, res.Driver, res.Mountpoint, res.Name, res.Options), nil
+}
+
+func RemoveVolume(name string, force bool) error {
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	return cli.VolumeRemove(ctx, name, force)
 }
 
 func CreateNetwork(name string) (tesseract.Network, error) {

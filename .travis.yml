@@ -20,4 +20,4 @@ install:
 - dep ensure
 
 script:
-- bash ./travis/run.sh.sh
+- bash ./travis/run.sh
