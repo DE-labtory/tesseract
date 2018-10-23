@@ -3,10 +3,9 @@ package docker
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
-
-	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
@@ -16,8 +15,8 @@ import (
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types/mount"
 	"github.com/docker/go-connections/nat"
-	"github.com/it-chain/tesseract"
 	"github.com/it-chain/iLogger"
+	"github.com/it-chain/tesseract"
 )
 
 func CreateContainer(containerImage tesseract.ContainerImage, srcPath string, destPath string, port string) (container.ContainerCreateCreatedBody, error) {
