@@ -43,7 +43,7 @@ type ContainerConfig struct {
 
 	Network *Network // docker network option. if you don't use, nil
 
-	Mount string // [Mount-src-path or volume name]:[Mount-dist-path] ex) /go/src/github.com/it-chain/learn-icode:/icode
+	Mount []string // [Mount-src-path or volume name]:[Mount-dist-path] ex) /go/src/github.com/it-chain/learn-icode:/icode
 
 	//Volume *Volume // docker volume option.
 	//
