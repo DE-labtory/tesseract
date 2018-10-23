@@ -17,10 +17,10 @@ import (
 	"docker.io/go-docker"
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
+	"docker.io/go-docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
-	"docker.io/go-docker/api/types/network"
 )
 
 func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreateCreatedBody, error) {
@@ -52,12 +52,12 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 		networkName = config.Network.Name
 		endpointSetting := make(map[string]*network.EndpointSettings)
 		endpointSetting[config.Network.Name] = &network.EndpointSettings{
-			IPAddress:           config.ContainerIp,
+			IPAddress: config.ContainerIp,
 		}
 		networkConfig = &network.NetworkingConfig{
 			EndpointsConfig: endpointSetting,
 		}
-	}else{
+	} else {
 		exposedPort = nat.PortSet{
 			nat.Port(config.Port + "/tcp"): struct{}{},
 		}
@@ -87,7 +87,6 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 		AttachStdout: true,
 		AttachStderr: true,
 		ExposedPorts: exposedPort,
-
 	}, &container.HostConfig{
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBinding,
@@ -332,8 +331,8 @@ func FindNetworkByName(name string) (tesseract.Network, error) {
 	for _, net := range networkList {
 		if net.Name == name {
 			return tesseract.Network{
-				ID:     net.ID,
-				Name:   net.Name,
+				ID:   net.ID,
+				Name: net.Name,
 			}, nil
 		}
 	}

@@ -115,7 +115,6 @@ func TestCreateContainerWithVolume(t *testing.T) {
 			Mount: []string{
 				v.Name + ":" + "/volume/",
 				path.Join(GOPATH, "src/github.com/it-chain/tesseract") + ":" + "/go/src/github.com/it-chain/tesseract",
-				"/var/run/docker.sock:/var/run/docker.sock",
 			},
 		},
 	)
@@ -124,7 +123,7 @@ func TestCreateContainerWithVolume(t *testing.T) {
 		panic(err)
 	}
 
-	err = docker.StartContainer(res)
+	_, err = docker.StartContainer(res)
 	if err != nil {
 		panic(err)
 	}
