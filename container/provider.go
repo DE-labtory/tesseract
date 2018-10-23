@@ -50,7 +50,6 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
 	// Create Docker
 	res, err := docker.CreateContainer(
-		containerImage,
 		config,
 	)
 
@@ -82,7 +81,6 @@ func pullImage(ImageFullName string) error {
 
 	// Docker IMAGE pull
 	r, err := docker.HasImage(ImageFullName)
-
 	if err != nil {
 		return err
 	}
@@ -108,7 +106,6 @@ func retryConnectWithTimeOut(ipAddress string, port string, timeout time.Duratio
 	go func() {
 
 		ticker := time.NewTicker(2 * time.Second)
-
 		for _ = range ticker.C {
 			client, err := rpc.NewClientStream(ipAddress + ":" + port)
 			if err != nil {

@@ -9,13 +9,14 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"time"
+
 	dockerlib "docker.io/go-docker"
 	"docker.io/go-docker/api/types"
-	"github.com/it-chain/tesseract/docker"
-	"github.com/stretchr/testify/assert"
 	"github.com/it-chain/tesseract"
-	"sync"
-	"time"
+	"github.com/it-chain/tesseract/docker"
+	"github.com/it-chain/tesseract/rpc"
+	"github.com/stretchr/testify/assert"
 )
 
 type CleanFunc = func() error
@@ -66,27 +67,19 @@ func TestCreateContainer(t *testing.T) {
 	GOPATH := os.Getenv("GOPATH")
 	// when
 	res, err := docker.CreateContainer(tesseract.ContainerConfig{
-			Name:           "container_mock",
-			ContainerImage: testGolangImg,
-			IP:             "127.0.0.1",
-			Port:           "50001",
-			StartCmd:       []string{"go","run","icode_1/icode.go","-p","50001"},
-			Network:        nil,
-			Volume:         nil,
-			HostICodeRoot: path.Join(GOPATH,"src/github.com/it-chain/tesseract/mock"),
-			ImgSrcRootPath: "/go/src",
-
-		},
+		Name:           "container_mock",
+		ContainerImage: testGolangImg,
+		IP:             "127.0.0.1",
+		Port:           "50001",
+		StartCmd:       []string{"go", "run", path.Join("/go/src", "icode_1", "icode.go"), "-p", "50001"},
+		Network:        nil,
+		Mount:          path.Join(GOPATH, "src/github.com/it-chain/tesseract/mock") + ":" + "/go/src",
+	},
 	)
+
 	// then
 	docker.StartContainer(res)
-	a:=sync.WaitGroup{}
-	go func() {
-		time.Sleep(10 * time.Second)
-		a.Done()
-	}()
-	a.Add(1)
-	a.Wait()
+	err = connect("127.0.0.1", "50001", time.Second*300)
 	assert.NoError(t, err)
 
 	// when
@@ -95,6 +88,46 @@ func TestCreateContainer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "/container_mock", containerName)
 }
+
+//func TestCreateContainerWithVolume(t *testing.T) {
+//	defer setup(t, removeAllContainers)()
+//
+//	testGolangImg := tesseract.ContainerImage{
+//		Name: "golang",
+//		Tag:  "1.9",
+//	}
+//
+//	v, err := docker.CreateVolume("it-chain-default-volume")
+//	assert.NoError(t, err)
+//	n, err := docker.CreateNetwork("it-chain-default-network")
+//	assert.NoError(t, err)
+//
+//	// when
+//	res, err := docker.CreateContainer(
+//		tesseract.ContainerConfig{
+//			Name:           "container_mock",
+//			ContainerImage: testGolangImg,
+//			IP:             "127.0.0.1",
+//			Port:           "50001",
+//			StartCmd:       []string{"go", "run.sh", "icode_1/icode.go", "-p", "50001"},
+//			Network:        &n,
+//			Mount:          v.Name + ":" + "/go/src",
+//		},
+//	)
+//
+//	assert.NoError(t, err)
+//
+//	err = docker.StartContainer(res)
+//	assert.NoError(t, err)
+//
+//	time.Sleep(10 * time.Second)
+//
+//	// when
+//	containerName, err := getContainerName(res.ID)
+//	// then
+//	assert.NoError(t, err)
+//	assert.Equal(t, "/container_mock", containerName)
+//}
 
 //func TestCreateContainer_WhenSameNamedContainerExist_RandomGenerateName(t *testing.T) {
 //	defer setup(t, removeAllContainers)()
@@ -306,4 +339,42 @@ func removeAllContainers() error {
 	}
 
 	return nil
+}
+
+func connect(ipAddress string, port string, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	c := make(chan *rpc.ClientStream, 1)
+
+	go func() {
+
+		ticker := time.NewTicker(2 * time.Second)
+		for _ = range ticker.C {
+			client, err := rpc.NewClientStream(ipAddress + ":" + port)
+			if err != nil {
+				continue
+			}
+
+			_, err = client.Ping()
+
+			if err == nil {
+				client.SetHandler(rpc.NewDefaultHandler())
+				client.StartHandle()
+				c <- client
+				return
+			}
+		}
+	}()
+
+	select {
+
+	case <-ctx.Done():
+		//timeoutted body
+		return ctx.Err()
+
+	case <-c:
+		//okay body
+		return nil
+	}
 }
