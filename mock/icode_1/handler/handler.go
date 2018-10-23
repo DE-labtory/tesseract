@@ -15,7 +15,7 @@
  *
  */
 
-package icode_1
+package handler
 
 import (
 	"errors"

@@ -20,6 +20,7 @@
 package main
 
 import (
+	"icode_1/handler"
 	"os"
 	"strconv"
 
@@ -44,9 +45,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger.Info(nil, "port : " + strconv.Itoa(opts.Port))
+	logger.Info(nil, "port : "+strconv.Itoa(opts.Port))
 
-	exHandler := &HandlerExample{}
+	exHandler := &handler.HandlerExample{}
 	ibox := sdk.NewIBox(opts.Port)
 	ibox.SetHandler(exHandler)
 	err = ibox.On(30)
