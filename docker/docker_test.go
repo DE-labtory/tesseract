@@ -68,7 +68,7 @@ func TestCreateContainer(t *testing.T) {
 	res, err := docker.CreateContainer(tesseract.ContainerConfig{
 		Name:           "container_mock",
 		ContainerImage: testGolangImg,
-		IP:             "127.0.0.1",
+		HostIp:         "127.0.0.1",
 		Port:           "50001",
 		StartCmd:       []string{"go", "run", path.Join("/go/src", "icode_1", "icode.go"), "-p", "50001"},
 		Network:        nil,
@@ -108,7 +108,7 @@ func TestCreateContainerWithVolume(t *testing.T) {
 		tesseract.ContainerConfig{
 			Name:           "container_volume_test",
 			ContainerImage: GolangImg,
-			IP:             "127.0.0.1",
+			HostIp:         "127.0.0.1",
 			Port:           "50001",
 			StartCmd:       []string{"cp", "-r", "/go/src/github.com/it-chain/tesseract/", "/volume/", "&&", "go", "run", "/go/src/github.com/it-chain/tesseract/test/volume/main.go", v.Name},
 			Network:        nil,

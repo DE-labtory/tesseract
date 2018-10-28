@@ -20,6 +20,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
+	"docker.io/go-docker/api/types/network"
 )
 
 func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreateCreatedBody, error) {
@@ -45,20 +46,28 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 	networkName := ""
 	portBinding := nat.PortMap{}
 	exposedPort := nat.PortSet{}
+	var networkConfig *network.NetworkingConfig
 
 	if config.Network != nil {
 		networkName = config.Network.Name
-	}
-	if config.Port != "" {
+		endpointSetting := make(map[string]*network.EndpointSettings)
+		endpointSetting[config.Network.Name] = &network.EndpointSettings{
+			IPAddress:           config.ContainerIp,
+		}
+		networkConfig = &network.NetworkingConfig{
+			EndpointsConfig: endpointSetting,
+		}
+	}else{
 		exposedPort = nat.PortSet{
 			nat.Port(config.Port + "/tcp"): struct{}{},
 		}
 		portBinding = nat.PortMap{
 			nat.Port(config.Port + "/tcp"): []nat.PortBinding{{
-				HostIP:   config.IP,
+				HostIP:   config.HostIp,
 				HostPort: config.Port,
 			}},
 		}
+
 	}
 
 	if err != nil {
@@ -78,12 +87,13 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 		AttachStdout: true,
 		AttachStderr: true,
 		ExposedPorts: exposedPort,
+
 	}, &container.HostConfig{
 		CapAdd:       []string{"SYS_ADMIN"},
 		PortBindings: portBinding,
 		Binds:        config.Mount,
 		NetworkMode:  container.NetworkMode(networkName),
-	}, nil, containerName)
+	}, networkConfig, containerName)
 
 	if err != nil {
 		return res, err
@@ -276,21 +286,29 @@ func RemoveVolume(name string, force bool) error {
 	return cli.VolumeRemove(ctx, name, force)
 }
 
-func CreateNetwork(name string) (tesseract.Network, error) {
+func CreateNetwork(name string, subnet string) (tesseract.Network, error) {
 	ctx := context.Background()
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
 
-	network, err := FindNetworkByName(name)
+	findNetwork, err := FindNetworkByName(name)
 	if err != nil {
 		return tesseract.Network{}, err
 	}
 
-	if !isNetworkEmpty(network) {
+	if !isNetworkEmpty(findNetwork) {
 		return tesseract.Network{}, errors.New("already exist network name")
 	}
 
-	res, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{})
+	res, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{
+		Driver: "bridge",
+		IPAM: &network.IPAM{
+			Options: nil,
+			Config: []network.IPAMConfig{
+				{Subnet: subnet},
+			},
+		},
+	})
 
 	if err != nil {
 		return tesseract.Network{}, err
@@ -302,48 +320,57 @@ func CreateNetwork(name string) (tesseract.Network, error) {
 	}, nil
 }
 
-func FindNetworkByName(name string) (types.NetworkResource, error) {
+func FindNetworkByName(name string) (tesseract.Network, error) {
 	ctx := context.Background()
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
 
 	networkList, err := cli.NetworkList(ctx, types.NetworkListOptions{})
 	if err != nil {
-		return types.NetworkResource{}, err
+		return tesseract.Network{}, err
 	}
-	for _, network := range networkList {
-		if network.Name == name {
-			return network, nil
+	for _, net := range networkList {
+		if net.Name == name {
+			return tesseract.Network{
+				ID:     net.ID,
+				Name:   net.Name,
+			}, nil
 		}
 	}
-	return types.NetworkResource{}, nil
+	return tesseract.Network{}, nil
 }
 
-func FindVolumeByName(name string) (types.Volume, error) {
+func FindVolumeByName(name string) (tesseract.Volume, error) {
 	ctx := context.Background()
 	cli, _ := docker.NewEnvClient()
 	defer cli.Close()
 
 	listBody, err := cli.VolumeList(ctx, filters.Args{})
 	if err != nil {
-		return types.Volume{}, err
+		return tesseract.Volume{}, err
 	}
 
 	for _, vol := range listBody.Volumes {
 		if vol.Name == name {
-			return *vol, nil
+			return tesseract.Volume{
+				CreatedAt:  vol.CreatedAt,
+				Driver:     vol.Driver,
+				Mountpoint: vol.Mountpoint,
+				Name:       vol.Name,
+				Options:    vol.Options,
+			}, nil
 		}
 	}
 
-	return types.Volume{}, nil
+	return tesseract.Volume{}, nil
 }
 
-func isVolumeEmpty(vol types.Volume) bool {
-	return reflect.DeepEqual(vol, types.Volume{})
+func isVolumeEmpty(vol tesseract.Volume) bool {
+	return reflect.DeepEqual(vol, tesseract.Volume{})
 }
 
-func isNetworkEmpty(vol types.NetworkResource) bool {
-	return reflect.DeepEqual(vol, types.NetworkResource{})
+func isNetworkEmpty(vol tesseract.Network) bool {
+	return reflect.DeepEqual(vol, tesseract.Network{})
 }
 
 func convToVolumesCreateBody(name string) volume.VolumesCreateBody {

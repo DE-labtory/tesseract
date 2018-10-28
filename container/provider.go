@@ -38,7 +38,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 	containerImage := config.ContainerImage
 
 	// checking port
-	lis, err := net.Listen("tcp", "127.0.0.1:"+config.Port)
+	lis, err := net.Listen("tcp", config.HostIp+":"+config.Port)
 	lis.Close()
 	if err != nil {
 		return DockerContainer{}, err
@@ -65,7 +65,7 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	client, err := createClient(config.IP, config.Port)
+	client, err := createClient(config.ContainerIp, config.Port)
 
 	if err != nil {
 		iLogger.Errorf(nil, "[Tesseract] closing container %s", res.ID)

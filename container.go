@@ -28,14 +28,16 @@ type ContainerFactory interface {
 }
 
 type ContainerConfig struct {
-	language string // language that icode use
+	Language string // language that icode use
 	// todo ENUM 으로 대체하면 좋음 ( expect to change enum )
 
 	Name string // container name
 
 	ContainerImage ContainerImage // container docker image name to pull. example : 'golang:1.9'
 
-	IP string // IP address that manage icode.
+	HostIp string // HostIp address that manage icode.
+
+	ContainerIp string // ContainerIp
 
 	Port string // port num to communicate container and icode
 
