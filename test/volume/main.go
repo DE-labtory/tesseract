@@ -41,7 +41,7 @@ func main() {
 		tesseract.ContainerConfig{
 			Name:           "container_mock",
 			ContainerImage: testGolangImg,
-			IP:             "127.0.0.1",
+			HostIp:         "127.0.0.1",
 			Port:           "50002",
 			//StartCmd:       []string{"go", "run", "/go/src/github.com/it-chain/tesseract/mock/test-volume/main.go"},
 			StartCmd: []string{"sleep", "1000"},
