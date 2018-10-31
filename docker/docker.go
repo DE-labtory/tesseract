@@ -119,7 +119,7 @@ func setUpImage(imageName string) error {
 	return nil
 }
 
-func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
+func StartContainer(containerBody container.ContainerCreateCreatedBody) (types.ContainerJSON, error) {
 
 	ctx := context.Background()
 	cli, err := docker.NewEnvClient()
@@ -128,10 +128,10 @@ func StartContainer(containerBody container.ContainerCreateCreatedBody) error {
 	err = cli.ContainerStart(ctx, containerBody.ID, types.ContainerStartOptions{})
 	if err != nil {
 		// An error occurred while starting the container!
-		return err
+		return types.ContainerJSON{}, err
 	}
 
-	return nil
+	return cli.ContainerInspect(ctx, containerBody.ID)
 }
 
 func PullImage(imageName string) error {
