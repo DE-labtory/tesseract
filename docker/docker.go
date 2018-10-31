@@ -46,6 +46,7 @@ func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreat
 	networkName := ""
 	portBinding := nat.PortMap{}
 	exposedPort := nat.PortSet{}
+
 	var networkConfig *network.NetworkingConfig
 
 	if config.Network != nil {

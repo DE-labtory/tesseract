@@ -18,6 +18,7 @@ package container
 
 import (
 	"context"
+
 	"docker.io/go-docker/api/types"
 
 	"errors"
@@ -65,9 +66,13 @@ func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 		return DockerContainer{}, err
 	}
 
-	ipAddress := retrieveNetworkIpAddress(config.Network.Name, containerInfo)
-
-	client, err := createClient(ipAddress, config.Port)
+	var client *rpc.ClientStream
+	if config.Network == nil {
+		client, err = createClient(config.ContainerIp, config.Port)
+	} else {
+		ipAddress := retrieveNetworkIpAddress(config.Network.Name, containerInfo)
+		client, err = createClient(ipAddress, config.Port)
+	}
 
 	if err != nil {
 		iLogger.Errorf(nil, "[Tesseract] closing container %s", res.ID)
