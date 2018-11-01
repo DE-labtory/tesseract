@@ -18,14 +18,12 @@ package container
 
 import (
 	"context"
-
-	"docker.io/go-docker/api/types"
-
 	"errors"
-
 	"net"
+	"strconv"
 	"time"
 
+	"docker.io/go-docker/api/types"
 	"github.com/it-chain/iLogger"
 	"github.com/it-chain/tesseract"
 	"github.com/it-chain/tesseract/docker"
@@ -33,6 +31,7 @@ import (
 )
 
 var ErrFailedPullImage = errors.New("failed to pull image")
+var defaultPort = "50001"
 
 func Create(config tesseract.ContainerConfig) (DockerContainer, error) {
 
@@ -143,5 +142,37 @@ func retryConnectWithTimeOut(ipAddress string, port string, timeout time.Duratio
 	case client := <-c:
 		//okay body
 		return client, nil
+	}
+}
+
+func GetAvailablePort() (string, error) {
+	portList, err := docker.GetPorts()
+	if err != nil {
+		return "", err
+	}
+
+findLoop:
+	for {
+		portNumber, err := strconv.Atoi(defaultPort)
+		if err != nil {
+			return "", err
+		}
+		for _, portInfo := range portList {
+			if portNumber == int(portInfo.PublicPort) || portNumber == int(portInfo.PrivatePort) {
+				portNumber++
+				defaultPort = strconv.Itoa(portNumber)
+				continue findLoop
+			}
+		}
+
+		lis, err := net.Listen("tcp", "127.0.0.1:"+defaultPort)
+
+		if err == nil {
+			lis.Close()
+			return defaultPort, nil
+		}
+
+		portNumber++
+		defaultPort = strconv.Itoa(portNumber)
 	}
 }

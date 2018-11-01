@@ -365,6 +365,33 @@ func FindVolumeByName(name string) (tesseract.Volume, error) {
 	return tesseract.Volume{}, nil
 }
 
+func GetPorts() ([]types.Port, error) {
+
+	ctx := context.Background()
+	cli, _ := docker.NewEnvClient()
+	defer cli.Close()
+
+	portList := make([]types.Port, 0)
+	containerList, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+
+	if err != nil {
+		return portList, err
+	}
+
+	for _, container := range containerList {
+		for _, port := range container.Ports {
+			portInfo := types.Port{
+				IP:          port.IP,
+				PrivatePort: port.PrivatePort,
+				PublicPort:  port.PublicPort,
+			}
+			portList = append(portList, portInfo)
+		}
+	}
+
+	return portList, nil
+}
+
 func isVolumeEmpty(vol tesseract.Volume) bool {
 	return reflect.DeepEqual(vol, tesseract.Volume{})
 }
