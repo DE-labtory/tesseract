@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 It-chain
+ * Copyright 2018 DE-labtory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/docker"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/docker"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 			ContainerImage: testGolangImg,
 			HostIp:         "127.0.0.1",
 			Port:           "50002",
-			//StartCmd:       []string{"go", "run", "/go/src/github.com/it-chain/tesseract/mock/test-volume/main.go"},
+			//StartCmd:       []string{"go", "run", "/go/src/github.com/DE-labtory/tesseract/mock/test-volume/main.go"},
 			StartCmd: []string{"sleep", "1000"},
 			Network:  nil,
 			Mount: []string{

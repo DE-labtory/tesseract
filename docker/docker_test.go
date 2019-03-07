@@ -13,9 +13,9 @@ import (
 
 	dockerlib "docker.io/go-docker"
 	"docker.io/go-docker/api/types"
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/docker"
-	"github.com/it-chain/tesseract/rpc"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/docker"
+	"github.com/DE-labtory/tesseract/rpc"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -73,7 +73,7 @@ func TestCreateContainer(t *testing.T) {
 		StartCmd:       []string{"go", "run", path.Join("/go/src", "icode_1", "icode.go"), "-p", "50001"},
 		Network:        nil,
 		Mount: []string{
-			path.Join(GOPATH, "src/github.com/it-chain/tesseract/mock") + ":" + "/go/src",
+			path.Join(GOPATH, "src/github.com/DE-labtory/tesseract/mock") + ":" + "/go/src",
 		},
 	},
 	)
@@ -110,11 +110,11 @@ func TestCreateContainerWithVolume(t *testing.T) {
 			ContainerImage: GolangImg,
 			HostIp:         "127.0.0.1",
 			Port:           "50001",
-			StartCmd:       []string{"cp", "-r", "/go/src/github.com/it-chain/tesseract/", "/volume/", "&&", "go", "run", "/go/src/github.com/it-chain/tesseract/test/volume/main.go", v.Name},
+			StartCmd:       []string{"cp", "-r", "/go/src/github.com/DE-labtory/tesseract/", "/volume/", "&&", "go", "run", "/go/src/github.com/DE-labtory/tesseract/test/volume/main.go", v.Name},
 			Network:        nil,
 			Mount: []string{
 				v.Name + ":" + "/volume/",
-				path.Join(GOPATH, "src/github.com/it-chain/tesseract") + ":" + "/go/src/github.com/it-chain/tesseract",
+				path.Join(GOPATH, "src/github.com/DE-labtory/tesseract") + ":" + "/go/src/github.com/DE-labtory/tesseract",
 			},
 		},
 	)
@@ -144,7 +144,7 @@ func TestCreateContainerWithVolume(t *testing.T) {
 //	// when
 //	res, err := docker.CreateContainer(
 //		tesseract.GetDefaultImage(),
-//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		GOPATH + "/src/github.com/DE-labtory/tesseract/mock",
 //		"github.com/mock",
 //		"50005",
 //	)
@@ -160,7 +160,7 @@ func TestCreateContainerWithVolume(t *testing.T) {
 //	// when
 //	res2, err := docker.CreateContainer(
 //		tesseract.GetDefaultImage(),
-//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		GOPATH + "/src/github.com/DE-labtory/tesseract/mock",
 //		"github.com/mock",
 //		"50005",
 //	)
@@ -181,7 +181,7 @@ func TestCreateContainerWithVolume(t *testing.T) {
 //	// when
 //	_, err := docker.CreateContainer(
 //		tesseract.GetDefaultImage(),
-//		GOPATH + "/src/github.com/it-chain/tesseract/mock",
+//		GOPATH + "/src/github.com/DE-labtory/tesseract/mock",
 //		"github.com/mock",
 //		"50005",
 //	)
@@ -229,7 +229,7 @@ func TestMakeICodeLogDir(t *testing.T) {
 //	GOPATH := os.Getenv("GOPATH")
 //	res, err := docker.CreateContainer(
 //		tesseract.GetDefaultImage(),
-//		GOPATH+"/src/github.com/it-chain/tesseract/mock",
+//		GOPATH+"/src/github.com/DE-labtory/tesseract/mock",
 //		"github.com/mock",
 //		"50005",
 //	)

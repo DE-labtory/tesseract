@@ -18,9 +18,9 @@ import (
 	"docker.io/go-docker/api/types"
 	"docker.io/go-docker/api/types/container"
 	"docker.io/go-docker/api/types/network"
+	"github.com/DE-labtory/iLogger"
+	"github.com/DE-labtory/tesseract"
 	"github.com/docker/go-connections/nat"
-	"github.com/it-chain/iLogger"
-	"github.com/it-chain/tesseract"
 )
 
 func CreateContainer(config tesseract.ContainerConfig) (container.ContainerCreateCreatedBody, error) {

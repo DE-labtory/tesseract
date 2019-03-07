@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 It-chain
+ * Copyright 2018 DE-labtory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,15 @@ import (
 	"os"
 	"sync"
 
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/container"
-	"github.com/it-chain/tesseract/pb"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/container"
+	"github.com/DE-labtory/tesseract/pb"
 )
 
 func main() {
 
 	config := tesseract.ContainerConfig{
-		Directory: os.Getenv("GOPATH") + "/src/github.com/it-chain/tesseract/mock",
+		Directory: os.Getenv("GOPATH") + "/src/github.com/DE-labtory/tesseract/mock",
 		Url:       "github.com/mock",
 	}
 
