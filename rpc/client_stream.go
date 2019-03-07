@@ -5,9 +5,9 @@ import (
 	"io"
 	"time"
 
-	"github.com/it-chain/iLogger"
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/pb"
+	"github.com/DE-labtory/iLogger"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/pb"
 	"google.golang.org/grpc"
 )
 

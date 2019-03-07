@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 It-chain
+ * Copyright 2018 DE-labtory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package tesseract
 
 import (
-	"github.com/it-chain/tesseract/pb"
+	"github.com/DE-labtory/tesseract/pb"
 )
 
 type ContainerID = string
@@ -45,7 +45,7 @@ type ContainerConfig struct {
 
 	Network *Network // docker network option. if you don't use, nil
 
-	Mount []string // [Mount-src-path or volume name]:[Mount-dist-path] ex) /go/src/github.com/it-chain/learn-icode:/icode
+	Mount []string // [Mount-src-path or volume name]:[Mount-dist-path] ex) /go/src/github.com/DE-labtory/learn-icode:/icode
 
 	//Volume *Volume // docker volume option.
 	//

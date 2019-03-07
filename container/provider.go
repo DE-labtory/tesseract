@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 It-chain
+ * Copyright 2018 DE-labtory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import (
 	"time"
 
 	"docker.io/go-docker/api/types"
-	"github.com/it-chain/iLogger"
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/docker"
-	"github.com/it-chain/tesseract/rpc"
+	"github.com/DE-labtory/iLogger"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/docker"
+	"github.com/DE-labtory/tesseract/rpc"
 )
 
 var ErrFailedPullImage = errors.New("failed to pull image")

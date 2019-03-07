@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 It-chain
+ * Copyright 2018 DE-labtory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
 package container
 
 import (
-	"github.com/it-chain/tesseract"
-	"github.com/it-chain/tesseract/docker"
-	"github.com/it-chain/tesseract/pb"
-	"github.com/it-chain/tesseract/rpc"
+	"github.com/DE-labtory/tesseract"
+	"github.com/DE-labtory/tesseract/docker"
+	"github.com/DE-labtory/tesseract/pb"
+	"github.com/DE-labtory/tesseract/rpc"
 )
 
 type DockerContainer struct {
